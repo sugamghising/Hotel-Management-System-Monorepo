@@ -1,0 +1,64 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOST=0.0.0.0
+      - LOG_LEVEL=info
+      - CORS_ORIGIN=*
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3000/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Development service with hot reload
+  api-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - HOST=0.0.0.0
+      - LOG_LEVEL=debug
+      - CORS_ORIGIN=*
+      - DATABASE_URL=postgresql://hms:hms_dev_password@postgres:5432/hotel_management
+    volumes:
+      - ./src:/app/src
+      - ./package.json:/app/package.json:ro
+    command: sh -c "npx prisma generate && npm run dev"
+    profiles:
+      - dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # PostgreSQL database for development
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=hms
+      - POSTGRES_PASSWORD=hms_dev_password
+      - POSTGRES_DB=hotel_management
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'hms', '-d', 'hotel_management']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - dev
+
+volumes:
+  postgres_data:

@@ -1,0 +1,63 @@
+import { env } from './env';
+
+export const config = {
+  env: env.NODE_ENV,
+  isDevelopment: env.NODE_ENV === 'development',
+  isProduction: env.NODE_ENV === 'production',
+  isTest: env.NODE_ENV === 'test',
+
+  server: {
+    port: env.PORT,
+    host: env.HOST,
+  },
+
+  api: {
+    prefix: env.API_PREFIX,
+    version: env.API_VERSION,
+    get fullPrefix() {
+      return `${this.prefix}/${this.version}`;
+    },
+  },
+
+  rateLimit: {
+    windowMs: env.RATE_LIMIT_WINDOW_MS,
+    maxRequests: env.RATE_LIMIT_MAX_REQUESTS,
+  },
+
+  logging: {
+    level: env.LOG_LEVEL,
+  },
+
+  cors: {
+    origin: env.CORS_ORIGIN,
+  },
+
+  jwt: {
+    accessSecret: env.JWT_ACCESS_SECRET,
+    refreshSecret: env.JWT_REFRESH_SECRET,
+    accessExpiry: env.JWT_ACCESS_EXPIRY,
+    refreshExpiry: env.JWT_REFRESH_EXPIRY,
+  },
+
+  auth: {
+    passwordResetUrlBase: env.PASSWORD_RESET_URL_BASE,
+  },
+
+  resend: {
+    apiKey: env.RESEND_API_KEY,
+    fromEmail: env.RESEND_FROM_EMAIL,
+    webhookSecret: env.RESEND_WEBHOOK_SECRET,
+  },
+
+  system: {
+    userId: env.SYSTEM_USER_ID,
+  },
+
+  maintenance: {
+    escalationCheckerEnabled: env.MAINTENANCE_ESCALATION_CHECKER_ENABLED,
+    escalationCheckerIntervalMs: env.MAINTENANCE_ESCALATION_CHECKER_INTERVAL_MS,
+    escalationCheckerBatchSize: env.MAINTENANCE_ESCALATION_CHECKER_BATCH_SIZE,
+  },
+} as const;
+
+export type Config = typeof config;
