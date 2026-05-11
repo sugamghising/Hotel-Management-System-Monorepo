@@ -1,0 +1,17 @@
+{
+  "name": "hms-monorepo",
+  "private": true,
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "dev:api": "pnpm --filter @hms/api dev",
+    "dev:web": "pnpm --filter @hms/web dev",
+    "build": "turbo run build",
+    "type-check": "turbo run type-check",
+    "lint": "turbo run lint",
+    "clean": "turbo run clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.4.0"
+  }
+}
