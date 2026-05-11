@@ -1,0 +1,48 @@
+{
+  "name": "@hms/schemas",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "type-check": "tsc --noEmit -p tsconfig.json"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./auth": "./src/auth.ts",
+    "./checkin-checkout": "./src/checkin-checkout.ts",
+    "./checkinCheckout": "./src/checkinCheckout.ts",
+    "./channel": "./src/channels.ts",
+    "./channels": "./src/channels.ts",
+    "./communications": "./src/communications.ts",
+    "./folio": "./src/folios.ts",
+    "./folios": "./src/folios.ts",
+    "./hotel": "./src/hotels.ts",
+    "./guests": "./src/guests.ts",
+    "./hotels": "./src/hotels.ts",
+    "./housekeeping": "./src/housekeeping.ts",
+    "./inventory": "./src/inventory.ts",
+    "./maintenance": "./src/maintenance.ts",
+    "./night-audit": "./src/night-audit.ts",
+    "./nightAudit": "./src/nightAudit.ts",
+    "./organization": "./src/organizations.ts",
+    "./organizations": "./src/organizations.ts",
+    "./pos": "./src/pos.ts",
+    "./ratePlans": "./src/rate-plans.ts",
+    "./rate-plans": "./src/rate-plans.ts",
+    "./roomTypes": "./src/room-types.ts",
+    "./room-types": "./src/room-types.ts",
+    "./reports": "./src/reports.ts",
+    "./reservations": "./src/reservations.ts",
+    "./rooms": "./src/rooms.ts",
+    "./user": "./src/users.ts",
+    "./users": "./src/users.ts"
+  },
+  "dependencies": {
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

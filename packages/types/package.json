@@ -1,0 +1,29 @@
+{
+  "name": "@hms/types",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "type-check": "tsc --noEmit -p tsconfig.json"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./auth": "./src/auth.ts",
+    "./reservations": "./src/reservations.ts",
+    "./guests": "./src/guests.ts",
+    "./rooms": "./src/rooms.ts",
+    "./hotel": "./src/hotel.ts",
+    "./hotels": "./src/hotel.ts",
+    "./folio": "./src/folio.ts",
+    "./folios": "./src/folio.ts",
+    "./roomTypes": "./src/roomTypes.ts",
+    "./room-types": "./src/roomTypes.ts",
+    "./ratePlans": "./src/ratePlans.ts",
+    "./rate-plans": "./src/ratePlans.ts"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

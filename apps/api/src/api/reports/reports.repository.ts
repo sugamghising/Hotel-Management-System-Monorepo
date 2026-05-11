@@ -1576,7 +1576,7 @@ export class ReportsRepository {
         reserved: Number(roomStatusData?.reserved ?? 0),
       },
       pendingActions,
-      revenueByHour: revenueByHour.map((row) => ({
+      revenueByHour: revenueByHour.map((row: { hour: number; revenue: Decimal }) => ({
         hour: Number(row.hour),
         revenue: new Decimal(row.revenue),
       })),
