@@ -1,11 +1,9 @@
-// src/features/hotels/hotels.routes.ts
-
-import { Router } from 'express';
-import { validate } from '../../core';
-import { authMiddleware } from '../../core/middleware/auth';
-import { createRateLimiter } from '../../core/middleware/rateLimiter';
-import { requirePermission } from '../../core/middleware/requirePermission';
-import { hotelController } from './hotel.controller';
+import { Router } from "express";
+import { validate } from "../../core";
+import { authMiddleware } from "../../core/middleware/auth";
+import { createRateLimiter } from "../../core/middleware/rateLimiter";
+import { requirePermission } from "../../core/middleware/requirePermission";
+import { hotelController } from "./hotel.controller";
 import {
   AvailabilityCalendarQuerySchema,
   CloneHotelSchema,
@@ -15,7 +13,7 @@ import {
   OrganizationIdParamSchema,
   UpdateHotelSchema,
   UpdateHotelSettingsSchema,
-} from './hotel.dto';
+} from "./hotel.dto";
 
 const router = Router({ mergeParams: true });
 
@@ -27,52 +25,52 @@ router.use(authMiddleware);
 // ============================================================================
 
 router.post(
-  '/',
-  requirePermission('HOTEL.CREATE'),
+  "/",
+  requirePermission("HOTEL.CREATE"),
   createRateLimiter({ windowMs: 60 * 1000, max: 10 }),
   validate({
     params: OrganizationIdParamSchema,
     body: CreateHotelSchema,
   }),
-  hotelController.create
+  hotelController.create,
 );
 
 router.get(
-  '/',
-  requirePermission('HOTEL.READ'),
+  "/",
+  requirePermission("HOTEL.READ"),
   validate({
     params: OrganizationIdParamSchema,
     query: HotelQuerySchema,
   }),
-  hotelController.list
+  hotelController.list,
 );
 
 router.get(
-  '/:hotelId',
-  requirePermission('HOTEL.READ'),
+  "/:hotelId",
+  requirePermission("HOTEL.READ"),
   validate({
     params: OrganizationIdParamSchema.merge(HotelIdParamSchema),
   }),
-  hotelController.getById
+  hotelController.getById,
 );
 
 router.patch(
-  '/:hotelId',
-  requirePermission('HOTEL.UPDATE'),
+  "/:hotelId",
+  requirePermission("HOTEL.UPDATE"),
   validate({
     params: OrganizationIdParamSchema.merge(HotelIdParamSchema),
     body: UpdateHotelSchema,
   }),
-  hotelController.update
+  hotelController.update,
 );
 
 router.delete(
-  '/:hotelId',
-  requirePermission('HOTEL.DELETE'),
+  "/:hotelId",
+  requirePermission("HOTEL.DELETE"),
   validate({
     params: OrganizationIdParamSchema.merge(HotelIdParamSchema),
   }),
-  hotelController.delete
+  hotelController.delete,
 );
 
 // ============================================================================
@@ -80,31 +78,31 @@ router.delete(
 // ============================================================================
 
 router.get(
-  '/:hotelId/dashboard',
-  requirePermission('HOTEL.READ'),
+  "/:hotelId/dashboard",
+  requirePermission("HOTEL.READ"),
   validate({
     params: OrganizationIdParamSchema.merge(HotelIdParamSchema),
   }),
-  hotelController.getDashboard
+  hotelController.getDashboard,
 );
 
 router.get(
-  '/:hotelId/rooms/status-summary',
-  requirePermission('ROOM.READ'),
+  "/:hotelId/rooms/status-summary",
+  requirePermission("ROOM.READ"),
   validate({
     params: OrganizationIdParamSchema.merge(HotelIdParamSchema),
   }),
-  hotelController.getRoomStatusSummary
+  hotelController.getRoomStatusSummary,
 );
 
 router.get(
-  '/:hotelId/rooms/availability',
-  requirePermission('ROOM.READ'),
+  "/:hotelId/rooms/availability",
+  requirePermission("ROOM.READ"),
   validate({
     params: OrganizationIdParamSchema.merge(HotelIdParamSchema),
     query: AvailabilityCalendarQuerySchema,
   }),
-  hotelController.getAvailability
+  hotelController.getAvailability,
 );
 
 // ============================================================================
@@ -112,22 +110,22 @@ router.get(
 // ============================================================================
 
 router.get(
-  '/:hotelId/settings',
-  requirePermission('HOTEL.READ'),
+  "/:hotelId/settings",
+  requirePermission("HOTEL.READ"),
   validate({
     params: OrganizationIdParamSchema.merge(HotelIdParamSchema),
   }),
-  hotelController.getSettings
+  hotelController.getSettings,
 );
 
 router.patch(
-  '/:hotelId/settings',
-  requirePermission('HOTEL.UPDATE'),
+  "/:hotelId/settings",
+  requirePermission("HOTEL.UPDATE"),
   validate({
     params: OrganizationIdParamSchema.merge(HotelIdParamSchema),
     body: UpdateHotelSettingsSchema,
   }),
-  hotelController.updateSettings
+  hotelController.updateSettings,
 );
 
 // ============================================================================
@@ -135,13 +133,13 @@ router.patch(
 // ============================================================================
 
 router.post(
-  '/:hotelId/clone',
-  requirePermission('HOTEL.CREATE'),
+  "/:hotelId/clone",
+  requirePermission("HOTEL.CREATE"),
   validate({
     params: OrganizationIdParamSchema.merge(HotelIdParamSchema),
     body: CloneHotelSchema,
   }),
-  hotelController.clone
+  hotelController.clone,
 );
 
 export default router;

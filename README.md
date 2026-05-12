@@ -17,7 +17,7 @@ packages/
 ## Prerequisites
 
 - Node.js `>= 20`
-- pnpm `8.x` (workspace is configured with `packageManager: pnpm@8.0.0`)
+- pnpm `9.x` (workspace is configured with `packageManager: pnpm@9.15.5`)
 
 ## Setup
 

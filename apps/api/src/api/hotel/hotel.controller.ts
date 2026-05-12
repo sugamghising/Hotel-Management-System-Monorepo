@@ -1,12 +1,14 @@
-// src/features/hotels/hotels.controller.ts
-
-import type { Request, Response } from 'express';
-import { StatusCodes } from 'http-status-codes';
-import { ServiceResponse, handleServiceResponse } from '../../common';
-import { asyncHandler } from '../../core';
-import type { HotelQueryInput } from './hotel.dto';
-import { CloneHotelSchema, CreateHotelSchema, UpdateHotelSchema } from './hotel.schema';
-import { hotelService } from './hotel.service';
+import type { Request, Response } from "express";
+import { StatusCodes } from "http-status-codes";
+import { ServiceResponse, handleServiceResponse } from "../../common";
+import { asyncHandler } from "../../core";
+import type { HotelQueryInput } from "./hotel.dto";
+import {
+  CloneHotelSchema,
+  CreateHotelSchema,
+  UpdateHotelSchema,
+} from "./hotel.schema";
+import { hotelService } from "./hotel.service";
 
 /**
  * Controller transport handlers for hotel management.
@@ -25,15 +27,23 @@ export class HotelController {
    * @param req - Express request with route scope and validated filters/payload.
    * @param res - Express response used by `handleServiceResponse`.
    */
-  create = asyncHandler(async (req: Request, res: Response) => {
+  create = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const { organizationId } = req.params as { organizationId: string };
     const input = CreateHotelSchema.parse(req.body);
 
-    const hotel = await hotelService.create(organizationId, input, req.user?.sub);
+    const hotel = await hotelService.create(
+      organizationId,
+      input,
+      req.user?.sub,
+    );
 
     handleServiceResponse(
-      ServiceResponse.success({ hotel }, 'Hotel created successfully', StatusCodes.CREATED),
-      res
+      ServiceResponse.success(
+        { hotel },
+        "Hotel created successfully",
+        StatusCodes.CREATED,
+      ),
+      res,
     );
   });
 
@@ -61,10 +71,13 @@ export class HotelController {
         city: query.city,
         search: query.search,
       } as Parameters<typeof hotelService.findByOrganization>[1],
-      { page: query.page, limit: query.limit }
+      { page: query.page, limit: query.limit },
     );
 
-    handleServiceResponse(ServiceResponse.success(result, 'Hotels retrieved successfully'), res);
+    handleServiceResponse(
+      ServiceResponse.success(result, "Hotels retrieved successfully"),
+      res,
+    );
   });
 
   /**
@@ -79,12 +92,22 @@ export class HotelController {
    * @param res - Express response used by `handleServiceResponse`.
    */
   getById = asyncHandler(async (req: Request, res: Response) => {
-    const { organizationId, hotelId } = req.params as { organizationId: string; hotelId: string };
-    const includeStats = req.query['stats'] === 'true';
+    const { organizationId, hotelId } = req.params as {
+      organizationId: string;
+      hotelId: string;
+    };
+    const includeStats = req.query["stats"] === "true";
 
-    const hotel = await hotelService.findById(hotelId, organizationId, includeStats);
+    const hotel = await hotelService.findById(
+      hotelId,
+      organizationId,
+      includeStats,
+    );
 
-    handleServiceResponse(ServiceResponse.success({ hotel }, 'Hotel retrieved successfully'), res);
+    handleServiceResponse(
+      ServiceResponse.success({ hotel }, "Hotel retrieved successfully"),
+      res,
+    );
   });
 
   /**
@@ -99,12 +122,23 @@ export class HotelController {
    * @param res - Express response used by `handleServiceResponse`.
    */
   update = asyncHandler(async (req: Request, res: Response) => {
-    const { organizationId, hotelId } = req.params as { organizationId: string; hotelId: string };
+    const { organizationId, hotelId } = req.params as {
+      organizationId: string;
+      hotelId: string;
+    };
     const input = UpdateHotelSchema.parse(req.body);
 
-    const hotel = await hotelService.update(hotelId, organizationId, input, req.user?.sub);
+    const hotel = await hotelService.update(
+      hotelId,
+      organizationId,
+      input,
+      req.user?.sub,
+    );
 
-    handleServiceResponse(ServiceResponse.success({ hotel }, 'Hotel updated successfully'), res);
+    handleServiceResponse(
+      ServiceResponse.success({ hotel }, "Hotel updated successfully"),
+      res,
+    );
   });
 
   /**
@@ -119,13 +153,20 @@ export class HotelController {
    * @param res - Express response used by `handleServiceResponse`.
    */
   delete = asyncHandler(async (req: Request, res: Response) => {
-    const { organizationId, hotelId } = req.params as { organizationId: string; hotelId: string };
+    const { organizationId, hotelId } = req.params as {
+      organizationId: string;
+      hotelId: string;
+    };
 
     await hotelService.delete(hotelId, organizationId, req.user?.sub);
 
     handleServiceResponse(
-      ServiceResponse.success(null, 'Hotel deleted successfully', StatusCodes.NO_CONTENT),
-      res
+      ServiceResponse.success(
+        null,
+        "Hotel deleted successfully",
+        StatusCodes.NO_CONTENT,
+      ),
+      res,
     );
   });
 
@@ -141,11 +182,17 @@ export class HotelController {
    * @param res - Express response used by `handleServiceResponse`.
    */
   getDashboard = asyncHandler(async (req: Request, res: Response) => {
-    const { organizationId, hotelId } = req.params as { organizationId: string; hotelId: string };
+    const { organizationId, hotelId } = req.params as {
+      organizationId: string;
+      hotelId: string;
+    };
 
     const dashboard = await hotelService.getDashboard(hotelId, organizationId);
 
-    handleServiceResponse(ServiceResponse.success({ dashboard }, 'Dashboard retrieved'), res);
+    handleServiceResponse(
+      ServiceResponse.success({ dashboard }, "Dashboard retrieved"),
+      res,
+    );
   });
 
   /**
@@ -160,11 +207,20 @@ export class HotelController {
    * @param res - Express response used by `handleServiceResponse`.
    */
   getRoomStatusSummary = asyncHandler(async (req: Request, res: Response) => {
-    const { organizationId, hotelId } = req.params as { organizationId: string; hotelId: string };
+    const { organizationId, hotelId } = req.params as {
+      organizationId: string;
+      hotelId: string;
+    };
 
-    const summary = await hotelService.getRoomStatusSummary(hotelId, organizationId);
+    const summary = await hotelService.getRoomStatusSummary(
+      hotelId,
+      organizationId,
+    );
 
-    handleServiceResponse(ServiceResponse.success({ summary }, 'Room status retrieved'), res);
+    handleServiceResponse(
+      ServiceResponse.success({ summary }, "Room status retrieved"),
+      res,
+    );
   });
 
   /**
@@ -179,7 +235,10 @@ export class HotelController {
    * @param res - Express response used by `handleServiceResponse`.
    */
   getAvailability = asyncHandler(async (req: Request, res: Response) => {
-    const { organizationId, hotelId } = req.params as { organizationId: string; hotelId: string };
+    const { organizationId, hotelId } = req.params as {
+      organizationId: string;
+      hotelId: string;
+    };
     const { startDate, endDate, roomTypeId } = req.query as unknown as {
       startDate: Date;
       endDate: Date;
@@ -191,10 +250,13 @@ export class HotelController {
       organizationId,
       startDate,
       endDate,
-      roomTypeId
+      roomTypeId,
     );
 
-    handleServiceResponse(ServiceResponse.success({ calendar }, 'Availability retrieved'), res);
+    handleServiceResponse(
+      ServiceResponse.success({ calendar }, "Availability retrieved"),
+      res,
+    );
   });
 
   /**
@@ -209,11 +271,17 @@ export class HotelController {
    * @param res - Express response used by `handleServiceResponse`.
    */
   getSettings = asyncHandler(async (req: Request, res: Response) => {
-    const { organizationId, hotelId } = req.params as { organizationId: string; hotelId: string };
+    const { organizationId, hotelId } = req.params as {
+      organizationId: string;
+      hotelId: string;
+    };
 
     const settings = await hotelService.getSettings(hotelId, organizationId);
 
-    handleServiceResponse(ServiceResponse.success({ settings }, 'Settings retrieved'), res);
+    handleServiceResponse(
+      ServiceResponse.success({ settings }, "Settings retrieved"),
+      res,
+    );
   });
 
   /**
@@ -228,17 +296,23 @@ export class HotelController {
    * @param res - Express response used by `handleServiceResponse`.
    */
   updateSettings = asyncHandler(async (req: Request, res: Response) => {
-    const { organizationId, hotelId } = req.params as { organizationId: string; hotelId: string };
+    const { organizationId, hotelId } = req.params as {
+      organizationId: string;
+      hotelId: string;
+    };
     const { operational, policies, amenities } = req.body;
 
     await hotelService.updateSettings(
       hotelId,
       organizationId,
       { operational, policies, amenities },
-      req.user?.sub
+      req.user?.sub,
     );
 
-    handleServiceResponse(ServiceResponse.success(null, 'Settings updated successfully'), res);
+    handleServiceResponse(
+      ServiceResponse.success(null, "Settings updated successfully"),
+      res,
+    );
   });
 
   /**
@@ -253,14 +327,26 @@ export class HotelController {
    * @param res - Express response used by `handleServiceResponse`.
    */
   clone = asyncHandler(async (req: Request, res: Response) => {
-    const { organizationId, hotelId } = req.params as { organizationId: string; hotelId: string };
+    const { organizationId, hotelId } = req.params as {
+      organizationId: string;
+      hotelId: string;
+    };
     const input = CloneHotelSchema.parse(req.body);
 
-    const cloned = await hotelService.clone(hotelId, organizationId, input, req.user?.sub);
+    const cloned = await hotelService.clone(
+      hotelId,
+      organizationId,
+      input,
+      req.user?.sub,
+    );
 
     handleServiceResponse(
-      ServiceResponse.success({ hotel: cloned }, 'Hotel cloned successfully', StatusCodes.CREATED),
-      res
+      ServiceResponse.success(
+        { hotel: cloned },
+        "Hotel cloned successfully",
+        StatusCodes.CREATED,
+      ),
+      res,
     );
   });
 }

@@ -1,7 +1,7 @@
 {
   "name": "hms-monorepo",
   "private": true,
-  "packageManager": "pnpm@8.0.0",
+  "packageManager": "pnpm@9.15.5",
   "scripts": {
     "dev": "turbo run dev --parallel",
     "dev:api": "pnpm --filter @hms/api dev",

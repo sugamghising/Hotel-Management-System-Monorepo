@@ -9,6 +9,9 @@
     "type-check": "tsc --noEmit",
     "lint": "next lint"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "@hms/schemas": "workspace:*",
     "@hms/types": "workspace:*",
@@ -28,6 +31,8 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
     "tailwindcss": "^3.4.0",
     "typescript": "^5.4.0"
   }
