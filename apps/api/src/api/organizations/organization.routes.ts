@@ -1,15 +1,16 @@
-import { Router } from 'express';
-import { PERMISSIONS } from '../../core/constants/permission';
-import { requirePermission } from '../../core/middleware/requirePermission';
-import { validate } from '../../core/middleware/validate';
-import { OrganizationController } from './organization.controller';
+import { Router } from "express";
+import { PERMISSIONS } from "../../core/constants/permission";
+import { requirePermission } from "../../core/middleware/requirePermission";
+import { validate } from "../../core/middleware/validate";
+import { OrganizationController } from "./organization.controller";
 import {
   OrganizationCreateSchema,
   OrganizationIdParamSchema,
   OrganizationQuerySchema,
   OrganizationUpdateSchema,
   SubscriptionUpdateSchema,
-} from './organization.dto';
+} from "./organization.dto";
+import { authMiddleware } from "@/core/middleware/auth";
 
 const router = Router();
 const controller = new OrganizationController();
@@ -21,54 +22,55 @@ const updateValidation = validate({ body: OrganizationUpdateSchema });
 const paramsValidation = validate({ params: OrganizationIdParamSchema });
 const subscriptionValidation = validate({ body: SubscriptionUpdateSchema });
 
+router.use(authMiddleware);
 // Routes
 router.get(
-  '/',
+  "/",
   requirePermission(PERMISSIONS.ORGANIZATION.READ),
   queryValidation,
-  controller.getAll
+  controller.getAll,
 );
 //Any one can create the organizations
-router.post('/', createValidation, controller.create);
+router.post("/", createValidation, controller.create);
 
 router.get(
-  '/:id',
+  "/:id",
   requirePermission(PERMISSIONS.ORGANIZATION.READ),
   paramsValidation,
-  controller.getById
+  controller.getById,
 );
 router.patch(
-  '/:id',
+  "/:id",
   requirePermission(PERMISSIONS.ORGANIZATION.UPDATE),
   paramsValidation,
   updateValidation,
-  controller.update
+  controller.update,
 );
 router.delete(
-  '/:id',
+  "/:id",
   requirePermission(PERMISSIONS.ORGANIZATION.DELETE),
   paramsValidation,
-  controller.delete
+  controller.delete,
 );
 
 router.post(
-  '/:id/subscription',
+  "/:id/subscription",
   requirePermission(PERMISSIONS.ORGANIZATION.MANAGE_SUBSCRIPTION),
   paramsValidation,
   subscriptionValidation,
-  controller.updateSubscription
+  controller.updateSubscription,
 );
 router.get(
-  '/:id/stats',
+  "/:id/stats",
   requirePermission(PERMISSIONS.ORGANIZATION.READ),
   paramsValidation,
-  controller.getStats
+  controller.getStats,
 );
 router.get(
-  '/:id/limits',
+  "/:id/limits",
   requirePermission(PERMISSIONS.ORGANIZATION.READ),
   paramsValidation,
-  controller.checkLimits
+  controller.checkLimits,
 );
 
 export default router;
