@@ -26,4 +26,6 @@ pnpm-debug.log*
 
 # TypeScript
 *.tsbuildinfo
-.zed/
+
+# Editor config
+/.zed/
