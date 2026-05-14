@@ -1,7 +1,9 @@
 import type { Request, Response } from 'express';
 import { ServiceResponse, handleServiceResponse } from '../../common';
 import { asyncHandler } from '../../core';
+import { BadRequestError } from '../../core/errors';
 import {
+  AddImageSchema,
   CreateRoomTypeSchema,
   type InventoryQueryInput,
   RoomTypeInventoryBulkSchema,
@@ -10,6 +12,16 @@ import {
 } from './roomTypes.schema';
 import { UpdateRoomTypeSchema } from './roomTypes.schema';
 import { roomTypesService } from './roomTypes.service';
+import { uploadBufferToCloudinary } from '../../core/cloudinary';
+
+type UploadedFile = {
+  buffer: Buffer;
+  originalname: string;
+};
+
+type MultipartRequest = Request & {
+  files?: UploadedFile[];
+};
 
 /**
  * Controller transport handlers for room type management.
@@ -30,9 +42,26 @@ export class RoomTypesController {
    */
   create = asyncHandler(async (req: Request, res: Response) => {
     const { organizationId, hotelId } = req.params as { organizationId: string; hotelId: string };
-    const input = CreateRoomTypeSchema.parse(req.body);
 
-    const roomType = await roomTypesService.create(organizationId, hotelId, input, req.user?.sub);
+    // Files parsed by lazyMulter are available on req.files
+    const files = (req as MultipartRequest).files ?? [];
+    const uploadedImages: Array<{ url: string; caption?: string | null; order?: number; isPrimary?: boolean }> = [];
+
+    if (files.length > 0) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (!file) {
+          continue;
+        }
+        const result = await uploadBufferToCloudinary(file.buffer, file.originalname, `hotels/${hotelId}/room-types`);
+        uploadedImages.push({ url: result.url, caption: null, order: i, isPrimary: i === 0 });
+      }
+    }
+
+    const input = CreateRoomTypeSchema.parse(req.body);
+    const inputWithImages = { ...(input as any), images: uploadedImages };
+
+    const roomType = await roomTypesService.create(organizationId, hotelId, inputWithImages, req.user?.sub);
 
     const response = ServiceResponse.success({ roomType }, 'Room type created successfully', 201);
     handleServiceResponse(response, res);
@@ -157,17 +186,38 @@ export class RoomTypesController {
    * @param res - Express response used by `handleServiceResponse`.
    */
   addImage = asyncHandler(async (req: Request, res: Response) => {
-    const { organizationId, roomTypeId } = req.params as {
+    const { organizationId, hotelId, roomTypeId } = req.params as {
       organizationId: string;
+      hotelId: string;
       roomTypeId: string;
     };
-    const { url, caption, order, isPrimary } = req.body;
+
+    const files = (req as MultipartRequest).files ?? [];
+    const file = files[0];
+    if (!file) {
+      throw new BadRequestError(
+        'Image file is required. Upload it using the "image" multipart form field.'
+      );
+    }
+
+    const upload = await uploadBufferToCloudinary(
+      file.buffer,
+      file.originalname,
+      `hotels/${hotelId}/room-types`
+    );
+
+    const imageInput = AddImageSchema.parse({
+      url: upload.url,
+      ...(req.body?.caption !== undefined && { caption: req.body.caption }),
+      ...(req.body?.order !== undefined && { order: req.body.order }),
+      ...(req.body?.isPrimary !== undefined && { isPrimary: req.body.isPrimary }),
+    });
 
     const roomType = await roomTypesService.addImage(roomTypeId, organizationId, {
-      url,
-      caption,
-      order,
-      isPrimary,
+      url: imageInput.url,
+      ...(typeof imageInput.caption === 'string' && { caption: imageInput.caption }),
+      ...(typeof imageInput.order === 'number' && { order: imageInput.order }),
+      isPrimary: imageInput.isPrimary,
     });
 
     const response = ServiceResponse.success({ roomType }, 'Image added', 201);

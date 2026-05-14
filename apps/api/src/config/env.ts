@@ -57,6 +57,11 @@ const envSchema = z.object({
   RESEND_FROM_EMAIL: z.string().email('Invalid RESEND_FROM_EMAIL').optional(),
   RESEND_WEBHOOK_SECRET: z.string().optional(),
 
+  // Cloudinary (optional in development/test; required in production if using media uploads)
+  CLOUDINARY_CLOUD_NAME: z.string().optional(),
+  CLOUDINARY_API_KEY: z.string().optional(),
+  CLOUDINARY_API_SECRET: z.string().optional(),
+
   // Redis (optional)
   REDIS_HOST: z.string().default('localhost'),
   REDIS_PORT: z.coerce.number().default(6379),

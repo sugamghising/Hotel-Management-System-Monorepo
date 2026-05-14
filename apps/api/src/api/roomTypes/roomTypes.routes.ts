@@ -4,8 +4,9 @@ import { authMiddleware } from '../../core/middleware/auth';
 import { createRateLimiter } from '../../core/middleware/rateLimiter';
 import { requirePermission } from '../../core/middleware/requirePermission';
 import { roomTypesController } from './roomTypes.controller';
+import { lazyMulter } from '../../core/middleware/lazyMulter';
+import { parseMultipartFields } from '../../core/middleware/parseMultipartFields';
 import {
-  AddImageSchema,
   CreateRoomTypeSchema,
   HotelIdParamSchema,
   InventoryQuerySchema,
@@ -29,6 +30,9 @@ router.use(authMiddleware);
 router.post(
   '/',
   requirePermission('ROOM_TYPE.CREATE'),
+  // Accept multipart form-data for images (files)
+  lazyMulter({ fieldName: 'images', maxCount: 10, maxFileSizeMB: 5 }),
+  parseMultipartFields,
   validate({
     params: OrganizationIdParamSchema.merge(HotelIdParamSchema),
     body: CreateRoomTypeSchema,
@@ -81,9 +85,10 @@ router.delete(
 router.post(
   '/:roomTypeId/images',
   requirePermission('ROOM_TYPE.UPDATE'),
+  lazyMulter({ fieldNames: ['image', 'images'], maxCount: 1, maxFileSizeMB: 5 }),
+  parseMultipartFields,
   validate({
     params: OrganizationIdParamSchema.merge(HotelIdParamSchema).merge(RoomTypeIdParamSchema),
-    body: AddImageSchema,
   }),
   roomTypesController.addImage
 );

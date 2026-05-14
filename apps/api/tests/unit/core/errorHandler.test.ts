@@ -32,4 +32,23 @@ describe('errorHandler', () => {
     expect(payload.error.code).toBe('UNAUTHORIZED');
     expect(payload.error.stack).toBeUndefined();
   });
+
+  it('returns 400 for multer unexpected field errors', () => {
+    const err = new Error('Unexpected field') as Error & { name: string };
+    err.name = 'MulterError';
+
+    const json = vi.fn();
+    const status = vi.fn().mockReturnValue({ json });
+    const res = { status } as unknown as Response;
+
+    errorHandler(err, {} as Request, res, vi.fn() as NextFunction);
+
+    expect(status).toHaveBeenCalledWith(400);
+    const payload = json.mock.calls[0][0] as {
+      error: { message: string; code: string; statusCode: number };
+    };
+    expect(payload.error.message).toBe('Unexpected field');
+    expect(payload.error.code).toBe('BAD_REQUEST');
+    expect(payload.error.statusCode).toBe(400);
+  });
 });
