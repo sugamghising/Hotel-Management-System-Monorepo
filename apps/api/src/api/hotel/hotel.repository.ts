@@ -317,7 +317,11 @@ export class HotelRepository {
         rt.name as "roomTypeName",
         COUNT(r.id) as total,
         COUNT(CASE WHEN r.status = 'VACANT_CLEAN' THEN 1 END) as available,
-        COUNT(CASE WHEN r.status LIKE 'OCCUPIED%' THEN 1 END) as occupied,
+        COUNT(
+          CASE
+            WHEN r.status IN ('OCCUPIED_CLEAN', 'OCCUPIED_DIRTY', 'OCCUPIED_CLEANING') THEN 1
+          END
+        ) as occupied,
         COUNT(CASE WHEN r.status = 'OUT_OF_ORDER' THEN 1 END) as ooo
       FROM room_types rt
       LEFT JOIN rooms r ON r.room_type_id = rt.id AND r.deleted_at IS NULL

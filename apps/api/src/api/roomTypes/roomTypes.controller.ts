@@ -1,15 +1,30 @@
-import type { Request, Response } from 'express';
-import { ServiceResponse, handleServiceResponse } from '../../common';
-import { asyncHandler } from '../../core';
+import type { Request, Response } from "express";
+import { ServiceResponse, handleServiceResponse } from "../../common";
+import { asyncHandler } from "../../core";
+import { BadRequestError } from "../../core/errors";
 import {
+  AddImageSchema,
+  CheckAvailabilitySchema,
   CreateRoomTypeSchema,
   type InventoryQueryInput,
+  ReorderImagesSchema,
+  RemoveImageSchema,
   RoomTypeInventoryBulkSchema,
   RoomTypeInventorySchema,
   RoomTypeQuerySchema,
-} from './roomTypes.schema';
-import { UpdateRoomTypeSchema } from './roomTypes.schema';
-import { roomTypesService } from './roomTypes.service';
+} from "./roomTypes.schema";
+import { UpdateRoomTypeSchema } from "./roomTypes.schema";
+import { roomTypesService } from "./roomTypes.service";
+import { uploadBufferToCloudinary } from "../../core/cloudinary";
+
+type UploadedFile = {
+  buffer: Buffer;
+  originalname: string;
+};
+
+type MultipartRequest = Request & {
+  files?: UploadedFile[];
+};
 
 /**
  * Controller transport handlers for room type management.
@@ -29,12 +44,55 @@ export class RoomTypesController {
    * @param res - Express response used by `handleServiceResponse`.
    */
   create = asyncHandler(async (req: Request, res: Response) => {
-    const { organizationId, hotelId } = req.params as { organizationId: string; hotelId: string };
+    const { organizationId, hotelId } = req.params as {
+      organizationId: string;
+      hotelId: string;
+    };
+
+    // Files parsed by lazyMulter are available on req.files
+    const files = (req as MultipartRequest).files ?? [];
+    const uploadedImages: Array<{
+      url: string;
+      caption?: string | null;
+      order?: number;
+      isPrimary?: boolean;
+    }> = [];
+
+    if (files.length > 0) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (!file) {
+          continue;
+        }
+        const result = await uploadBufferToCloudinary(
+          file.buffer,
+          file.originalname,
+          `hotels/${hotelId}/room-types`,
+        );
+        uploadedImages.push({
+          url: result.url,
+          caption: null,
+          order: i,
+          isPrimary: i === 0,
+        });
+      }
+    }
+
     const input = CreateRoomTypeSchema.parse(req.body);
+    const inputWithImages = { ...(input as any), images: uploadedImages };
 
-    const roomType = await roomTypesService.create(organizationId, hotelId, input, req.user?.sub);
+    const roomType = await roomTypesService.create(
+      organizationId,
+      hotelId,
+      inputWithImages,
+      req.user?.sub,
+    );
 
-    const response = ServiceResponse.success({ roomType }, 'Room type created successfully', 201);
+    const response = ServiceResponse.success(
+      { roomType },
+      "Room type created successfully",
+      201,
+    );
     handleServiceResponse(response, res);
   });
 
@@ -50,7 +108,10 @@ export class RoomTypesController {
    * @param res - Express response used by `handleServiceResponse`.
    */
   list = asyncHandler(async (req: Request, res: Response) => {
-    const { organizationId, hotelId } = req.params as { organizationId: string; hotelId: string };
+    const { organizationId, hotelId } = req.params as {
+      organizationId: string;
+      hotelId: string;
+    };
     const query = RoomTypeQuerySchema.parse(req.query);
 
     const result = await roomTypesService.findByHotel(
@@ -62,10 +123,10 @@ export class RoomTypesController {
         ...(query.viewType !== undefined && { viewType: query.viewType }),
         ...(query.search !== undefined && { search: query.search }),
       },
-      { page: query.page, limit: query.limit }
+      { page: query.page, limit: query.limit },
     );
 
-    const response = ServiceResponse.success(result, 'Room types retrieved');
+    const response = ServiceResponse.success(result, "Room types retrieved");
     handleServiceResponse(response, res);
   });
 
@@ -85,11 +146,18 @@ export class RoomTypesController {
       organizationId: string;
       roomTypeId: string;
     };
-    const includeStats = req.query['stats'] === 'true';
+    const includeStats = req.query["stats"] === "true";
 
-    const roomType = await roomTypesService.findById(roomTypeId, organizationId, includeStats);
+    const roomType = await roomTypesService.findById(
+      roomTypeId,
+      organizationId,
+      includeStats,
+    );
 
-    const response = ServiceResponse.success({ roomType }, 'Room type retrieved');
+    const response = ServiceResponse.success(
+      { roomType },
+      "Room type retrieved",
+    );
     handleServiceResponse(response, res);
   });
 
@@ -115,10 +183,10 @@ export class RoomTypesController {
       roomTypeId,
       organizationId,
       input,
-      req.user?.sub
+      req.user?.sub,
     );
 
-    const response = ServiceResponse.success({ roomType }, 'Room type updated');
+    const response = ServiceResponse.success({ roomType }, "Room type updated");
     handleServiceResponse(response, res);
   });
 
@@ -141,7 +209,7 @@ export class RoomTypesController {
 
     await roomTypesService.delete(roomTypeId, organizationId, req.user?.sub);
 
-    const response = ServiceResponse.success(null, 'Room type deleted', 204);
+    const response = ServiceResponse.success(null, "Room type deleted", 204);
     handleServiceResponse(response, res);
   });
 
@@ -157,20 +225,51 @@ export class RoomTypesController {
    * @param res - Express response used by `handleServiceResponse`.
    */
   addImage = asyncHandler(async (req: Request, res: Response) => {
-    const { organizationId, roomTypeId } = req.params as {
+    const { organizationId, hotelId, roomTypeId } = req.params as {
       organizationId: string;
+      hotelId: string;
       roomTypeId: string;
     };
-    const { url, caption, order, isPrimary } = req.body;
 
-    const roomType = await roomTypesService.addImage(roomTypeId, organizationId, {
-      url,
-      caption,
-      order,
-      isPrimary,
+    const files = (req as MultipartRequest).files ?? [];
+    const file = files[0];
+    if (!file) {
+      throw new BadRequestError(
+        'Image file is required. Upload it using the "image" multipart form field.',
+      );
+    }
+
+    const upload = await uploadBufferToCloudinary(
+      file.buffer,
+      file.originalname,
+      `hotels/${hotelId}/room-types`,
+    );
+
+    const imageInput = AddImageSchema.parse({
+      url: upload.url,
+      ...(req.body?.caption !== undefined && { caption: req.body.caption }),
+      ...(req.body?.order !== undefined && { order: req.body.order }),
+      ...(req.body?.isPrimary !== undefined && {
+        isPrimary: req.body.isPrimary,
+      }),
     });
 
-    const response = ServiceResponse.success({ roomType }, 'Image added', 201);
+    const roomType = await roomTypesService.addImage(
+      roomTypeId,
+      organizationId,
+      {
+        url: imageInput.url,
+        ...(typeof imageInput.caption === "string" && {
+          caption: imageInput.caption,
+        }),
+        ...(typeof imageInput.order === "number" && {
+          order: imageInput.order,
+        }),
+        isPrimary: imageInput.isPrimary,
+      },
+    );
+
+    const response = ServiceResponse.success({ roomType }, "Image added", 201);
     handleServiceResponse(response, res);
   });
 
@@ -190,11 +289,14 @@ export class RoomTypesController {
       organizationId: string;
       roomTypeId: string;
     };
-    const { url } = req.body;
+    const { url } = RemoveImageSchema.parse(req.body);
+    const roomType = await roomTypesService.removeImage(
+      roomTypeId,
+      organizationId,
+      url,
+    );
 
-    const roomType = await roomTypesService.removeImage(roomTypeId, organizationId, url);
-
-    const response = ServiceResponse.success({ roomType }, 'Image removed');
+    const response = ServiceResponse.success({ roomType }, "Image removed");
     handleServiceResponse(response, res);
   });
 
@@ -214,11 +316,15 @@ export class RoomTypesController {
       organizationId: string;
       roomTypeId: string;
     };
-    const { orders } = req.body; // [{ url, order }]
+    const { orders } = ReorderImagesSchema.parse(req.body);
 
-    const roomType = await roomTypesService.reorderImages(roomTypeId, organizationId, orders);
+    const roomType = await roomTypesService.reorderImages(
+      roomTypeId,
+      organizationId,
+      orders,
+    );
 
-    const response = ServiceResponse.success({ roomType }, 'Images reordered');
+    const response = ServiceResponse.success({ roomType }, "Images reordered");
     handleServiceResponse(response, res);
   });
 
@@ -244,10 +350,13 @@ export class RoomTypesController {
       roomTypeId,
       organizationId,
       startDate,
-      endDate
+      endDate,
     );
 
-    const response = ServiceResponse.success({ calendar }, 'Inventory retrieved');
+    const response = ServiceResponse.success(
+      { calendar },
+      "Inventory retrieved",
+    );
     handleServiceResponse(response, res);
   });
 
@@ -269,9 +378,16 @@ export class RoomTypesController {
     };
     const input = RoomTypeInventorySchema.parse(req.body);
 
-    const inventory = await roomTypesService.updateInventory(roomTypeId, organizationId, input);
+    const inventory = await roomTypesService.updateInventory(
+      roomTypeId,
+      organizationId,
+      input,
+    );
 
-    const response = ServiceResponse.success({ inventory }, 'Inventory updated');
+    const response = ServiceResponse.success(
+      { inventory },
+      "Inventory updated",
+    );
     handleServiceResponse(response, res);
   });
 
@@ -293,9 +409,16 @@ export class RoomTypesController {
     };
     const input = RoomTypeInventoryBulkSchema.parse(req.body);
 
-    const result = await roomTypesService.bulkUpdateInventory(roomTypeId, organizationId, input);
+    const result = await roomTypesService.bulkUpdateInventory(
+      roomTypeId,
+      organizationId,
+      input,
+    );
 
-    const response = ServiceResponse.success(result, `Updated ${result.updatedCount} days`);
+    const response = ServiceResponse.success(
+      result,
+      `Updated ${result.updatedCount} days`,
+    );
     handleServiceResponse(response, res);
   });
 
@@ -312,16 +435,18 @@ export class RoomTypesController {
    */
   checkAvailability = asyncHandler(async (req: Request, res: Response) => {
     const { roomTypeId } = req.params as { roomTypeId: string };
-    const { checkIn, checkOut, adults, children } = req.body;
+    const { checkIn, checkOut, adults, children } = CheckAvailabilitySchema.parse(
+      req.body,
+    );
 
     const result = await roomTypesService.checkAvailability(
       roomTypeId,
-      new Date(checkIn),
-      new Date(checkOut),
-      { adults, children }
+      checkIn,
+      checkOut,
+      { adults, children },
     );
 
-    const response = ServiceResponse.success(result, 'Availability checked');
+    const response = ServiceResponse.success(result, "Availability checked");
     handleServiceResponse(response, res);
   });
 }

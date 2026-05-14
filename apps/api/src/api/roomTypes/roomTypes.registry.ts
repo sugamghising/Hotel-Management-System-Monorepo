@@ -3,12 +3,14 @@ import { z } from '@/common/utils/zodExtensions';
 import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi';
 import { StatusCodes } from 'http-status-codes';
 import {
-  AddImageSchema,
   BedTypeSchema,
+  CheckAvailabilitySchema,
   CreateRoomTypeSchema,
   HotelIdParamSchema,
   InventoryQuerySchema,
   OrganizationIdParamSchema,
+  ReorderImagesSchema,
+  RemoveImageSchema,
   RoomTypeIdParamSchema,
   RoomTypeInventoryBulkSchema,
   RoomTypeInventorySchema,
@@ -202,6 +204,41 @@ roomTypesRegistry.register('UpdateRoomTypeInput', UpdateRoomTypeSchema);
 roomTypesRegistry.register('BedType', BedTypeSchema);
 roomTypesRegistry.register('ViewType', ViewTypeSchema);
 
+// Build a multipart/form-data variant of the create schema for OpenAPI docs.
+// Do not derive it via .omit() because CreateRoomTypeSchema is a refined schema (ZodEffects).
+const CreateRoomTypeFormSchema = z.object({
+  code: z.string().min(2).max(20),
+  name: z.string().min(2).max(100),
+  description: z.string().max(1000).optional(),
+  baseOccupancy: z.coerce.number().int().min(1).default(2),
+  maxOccupancy: z.coerce.number().int().min(1).max(10),
+  maxAdults: z.coerce.number().int().min(1).default(2),
+  maxChildren: z.coerce.number().int().min(0).default(0),
+  sizeSqm: z.coerce.number().positive().max(500).optional(),
+  sizeSqft: z.coerce.number().positive().max(5000).optional(),
+  bedTypes: z.array(BedTypeSchema).min(1),
+  amenities: z.array(z.string()).default([]),
+  viewType: ViewTypeSchema.optional(),
+  defaultCleaningTime: z.coerce.number().int().min(5).max(180).default(30),
+  isActive: z.coerce.boolean().default(true),
+  isBookable: z.coerce.boolean().default(true),
+  displayOrder: z.coerce.number().int().min(0).default(0),
+  images: z
+    .array(z.string().openapi({ type: 'string', format: 'binary' }))
+    .max(10)
+    .optional()
+    .openapi({ description: 'Room images uploaded as multipart files' }),
+});
+
+const AddRoomTypeImageFormSchema = z.object({
+  image: z
+    .string()
+    .openapi({ type: 'string', format: 'binary', description: 'Image file to upload' }),
+  caption: z.string().max(200).optional(),
+  order: z.number().int().min(0).optional(),
+  isPrimary: z.boolean().optional(),
+});
+
 // Common param schemas
 const OrgHotelParams = OrganizationIdParamSchema.merge(HotelIdParamSchema);
 const OrgHotelRoomTypeParams = OrgHotelParams.merge(RoomTypeIdParamSchema);
@@ -219,8 +256,8 @@ roomTypesRegistry.registerPath({
     params: OrgHotelParams,
     body: {
       content: {
-        'application/json': {
-          schema: CreateRoomTypeSchema,
+        'multipart/form-data': {
+          schema: CreateRoomTypeFormSchema,
         },
       },
     },
@@ -321,13 +358,14 @@ roomTypesRegistry.registerPath({
   path: '/api/v1/organizations/{organizationId}/hotels/{hotelId}/room-types/{roomTypeId}/images',
   tags: ['Room Types', 'Images'],
   summary: 'Add image to room type',
-  description: 'Add a new image to a room type. The first image is automatically set as primary.',
+  description:
+    'Upload a new image file to Cloudinary and add it to a room type. Supports optional caption/order/primary flags.',
   request: {
     params: OrgHotelRoomTypeParams,
     body: {
       content: {
-        'application/json': {
-          schema: AddImageSchema,
+        'multipart/form-data': {
+          schema: AddRoomTypeImageFormSchema,
         },
       },
     },
@@ -353,9 +391,7 @@ roomTypesRegistry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: z.object({
-            url: z.string().url().openapi({ description: 'URL of the image to remove' }),
-          }),
+          schema: RemoveImageSchema,
         },
       },
     },
@@ -380,14 +416,7 @@ roomTypesRegistry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: z.object({
-            orders: z.array(
-              z.object({
-                url: z.string().url(),
-                order: z.number().int().min(0),
-              })
-            ),
-          }),
+          schema: ReorderImagesSchema,
         },
       },
     },
@@ -485,12 +514,7 @@ roomTypesRegistry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: z.object({
-            checkIn: z.string().datetime().openapi({ description: 'Check-in date (ISO 8601)' }),
-            checkOut: z.string().datetime().openapi({ description: 'Check-out date (ISO 8601)' }),
-            adults: z.number().int().min(1).openapi({ description: 'Number of adults' }),
-            children: z.number().int().min(0).openapi({ description: 'Number of children' }),
-          }),
+          schema: CheckAvailabilitySchema,
         },
       },
     },

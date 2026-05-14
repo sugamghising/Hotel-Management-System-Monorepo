@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 // ============================================================================
 // BASE SCHEMAS
@@ -6,60 +6,63 @@ import { z } from 'zod';
 
 export const RoomTypeCodeSchema = z
   .string()
-  .min(2, 'Room type code must be at least 2 characters')
-  .max(20, 'Room type code must not exceed 20 characters')
-  .regex(/^[a-zA-Z0-9_-]+$/, 'Code can only contain letters, numbers, hyphens, and underscores')
+  .min(2, "Room type code must be at least 2 characters")
+  .max(20, "Room type code must not exceed 20 characters")
+  .regex(
+    /^[a-zA-Z0-9_-]+$/,
+    "Code can only contain letters, numbers, hyphens, and underscores",
+  )
   .transform((val) => val.toUpperCase());
 
 export const BedTypeSchema = z.enum([
-  'SINGLE',
-  'DOUBLE',
-  'QUEEN',
-  'KING',
-  'TWIN',
-  'BUNK',
-  'SOFA_BED',
-  'CRIB',
+  "SINGLE",
+  "DOUBLE",
+  "QUEEN",
+  "KING",
+  "TWIN",
+  "BUNK",
+  "SOFA_BED",
+  "CRIB",
 ]);
 
 export const ViewTypeSchema = z.enum([
-  'CITY',
-  'GARDEN',
-  'POOL',
-  'OCEAN',
-  'MOUNTAIN',
-  'COURTYARD',
-  'STREET',
-  'INTERIOR',
-  'PANORAMIC',
+  "CITY",
+  "GARDEN",
+  "POOL",
+  "OCEAN",
+  "MOUNTAIN",
+  "COURTYARD",
+  "STREET",
+  "INTERIOR",
+  "PANORAMIC",
 ]);
 
 export const AmenitySchema = z.enum([
-  'WIFI',
-  'TV',
-  'CABLE',
-  'NETFLIX',
-  'MINIBAR',
-  'SAFE',
-  'AC',
-  'HEATING',
-  'BALCONY',
-  'TERRACE',
-  'BATHTUB',
-  'SHOWER',
-  'HAIR_DRYER',
-  'IRON',
-  'DESK',
-  'WARDROBE',
-  'SOUNDPROOF',
-  'BLACKOUT_CURTAINS',
-  'COFFEE_MACHINE',
-  'KETTLE',
-  'MICROWAVE',
-  'REFRIGERATOR',
-  'KITCHENETTE',
-  'SOFA',
-  'ARMCHAIR',
+  "WIFI",
+  "TV",
+  "CABLE",
+  "NETFLIX",
+  "MINIBAR",
+  "SAFE",
+  "AC",
+  "HEATING",
+  "BALCONY",
+  "TERRACE",
+  "BATHTUB",
+  "SHOWER",
+  "HAIR_DRYER",
+  "IRON",
+  "DESK",
+  "WARDROBE",
+  "SOUNDPROOF",
+  "BLACKOUT_CURTAINS",
+  "COFFEE_MACHINE",
+  "KETTLE",
+  "MICROWAVE",
+  "REFRIGERATOR",
+  "KITCHENETTE",
+  "SOFA",
+  "ARMCHAIR",
 ]);
 
 // ============================================================================
@@ -81,7 +84,7 @@ export const CreateRoomTypeSchema = z
     // Physical
     sizeSqm: z.number().positive().max(500).optional(),
     sizeSqft: z.number().positive().max(5000).optional(),
-    bedTypes: z.array(BedTypeSchema).min(1, 'At least one bed type required'),
+    bedTypes: z.array(BedTypeSchema).min(1, "At least one bed type required"),
 
     // Features
     amenities: z.array(z.string()).default([]),
@@ -98,7 +101,7 @@ export const CreateRoomTypeSchema = z
           caption: z.string().max(200).optional(),
           order: z.number().int().min(0).default(0),
           isPrimary: z.boolean().default(false),
-        })
+        }),
       )
       .default([]),
 
@@ -108,12 +111,12 @@ export const CreateRoomTypeSchema = z
     displayOrder: z.number().int().min(0).default(0),
   })
   .refine((data) => data.baseOccupancy <= data.maxOccupancy, {
-    message: 'Base occupancy cannot exceed max occupancy',
-    path: ['baseOccupancy'],
+    message: "Base occupancy cannot exceed max occupancy",
+    path: ["baseOccupancy"],
   })
   .refine((data) => data.maxAdults + data.maxChildren <= data.maxOccupancy, {
-    message: 'Max adults + max children cannot exceed max occupancy',
-    path: ['maxChildren'],
+    message: "Max adults + max children cannot exceed max occupancy",
+    path: ["maxChildren"],
   });
 
 // ============================================================================
@@ -151,21 +154,25 @@ export const UpdateRoomTypeSchema = z
       return true;
     },
     {
-      message: 'Base occupancy cannot exceed max occupancy',
-      path: ['baseOccupancy'],
-    }
+      message: "Base occupancy cannot exceed max occupancy",
+      path: ["baseOccupancy"],
+    },
   )
   .refine(
     (data) => {
-      if (data.maxAdults !== undefined && data.maxChildren !== undefined && data.maxOccupancy) {
+      if (
+        data.maxAdults !== undefined &&
+        data.maxChildren !== undefined &&
+        data.maxOccupancy
+      ) {
         return data.maxAdults + data.maxChildren <= data.maxOccupancy;
       }
       return true;
     },
     {
-      message: 'Max adults + max children cannot exceed max occupancy',
-      path: ['maxChildren'],
-    }
+      message: "Max adults + max children cannot exceed max occupancy",
+      path: ["maxChildren"],
+    },
   );
 
 // ============================================================================
@@ -207,8 +214,8 @@ export const RoomTypeInventoryBulkSchema = z
     daysOfWeek: z.array(z.number().int().min(0).max(6)).optional(), // Sunday = 0
   })
   .refine((data) => data.endDate >= data.startDate, {
-    message: 'End date must be after or equal to start date',
-    path: ['endDate'],
+    message: "End date must be after or equal to start date",
+    path: ["endDate"],
   });
 
 // ============================================================================
@@ -220,6 +227,19 @@ export const AddImageSchema = z.object({
   caption: z.string().max(200).optional(),
   order: z.number().int().min(0).optional(),
   isPrimary: z.boolean().default(false),
+});
+
+export const RemoveImageSchema = z.object({
+  url: z.string().url(),
+});
+
+export const ReorderImagesSchema = z.object({
+  orders: z.array(
+    z.object({
+      url: z.string().url(),
+      order: z.number().int().min(0),
+    })
+  ),
 });
 
 // ============================================================================
@@ -252,6 +272,18 @@ export const InventoryQuerySchema = z.object({
   endDate: z.coerce.date(),
 });
 
+export const CheckAvailabilitySchema = z
+  .object({
+    checkIn: z.coerce.date(),
+    checkOut: z.coerce.date(),
+    adults: z.number().int().min(1),
+    children: z.number().int().min(0),
+  })
+  .refine((data) => data.checkOut > data.checkIn, {
+    message: "Check-out date must be after check-in date",
+    path: ["checkOut"],
+  });
+
 // ============================================================================
 // TYPE EXPORTS
 // ============================================================================
@@ -259,7 +291,12 @@ export const InventoryQuerySchema = z.object({
 export type CreateRoomTypeInput = z.infer<typeof CreateRoomTypeSchema>;
 export type UpdateRoomTypeInput = z.infer<typeof UpdateRoomTypeSchema>;
 export type RoomTypeInventoryInput = z.infer<typeof RoomTypeInventorySchema>;
-export type RoomTypeInventoryBulkInput = z.infer<typeof RoomTypeInventoryBulkSchema>;
+export type RoomTypeInventoryBulkInput = z.infer<
+  typeof RoomTypeInventoryBulkSchema
+>;
 export type AddImageInput = z.infer<typeof AddImageSchema>;
+export type RemoveImageInput = z.infer<typeof RemoveImageSchema>;
+export type ReorderImagesInput = z.infer<typeof ReorderImagesSchema>;
 export type RoomTypeQueryInput = z.infer<typeof RoomTypeQuerySchema>;
 export type InventoryQueryInput = z.infer<typeof InventoryQuerySchema>;
+export type CheckAvailabilityInput = z.infer<typeof CheckAvailabilitySchema>;

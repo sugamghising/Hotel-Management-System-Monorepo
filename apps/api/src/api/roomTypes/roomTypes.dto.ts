@@ -5,8 +5,11 @@ export {
   RoomTypeInventorySchema,
   RoomTypeInventoryBulkSchema,
   AddImageSchema,
+  ReorderImagesSchema,
+  RemoveImageSchema,
   RoomTypeQuerySchema,
   InventoryQuerySchema,
+  CheckAvailabilitySchema,
   RoomTypeIdParamSchema,
   HotelIdParamSchema,
   OrganizationIdParamSchema,
@@ -20,8 +23,11 @@ export {
   type RoomTypeInventoryInput,
   type RoomTypeInventoryBulkInput,
   type AddImageInput,
+  type ReorderImagesInput,
+  type RemoveImageInput,
   type RoomTypeQueryInput,
   type InventoryQueryInput,
+  type CheckAvailabilityInput,
 } from './roomTypes.schema';
 
 import type { RoomTypeInventoryResponse, RoomTypeResponse } from './roomTypes.types';

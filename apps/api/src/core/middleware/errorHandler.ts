@@ -65,6 +65,19 @@ export const errorHandler = (
     return;
   }
 
+  // Handle multipart parser errors from multer
+  if (err.name === 'MulterError') {
+    res.status(StatusCodes.BAD_REQUEST).json({
+      success: false,
+      error: {
+        message: err.message,
+        code: 'BAD_REQUEST',
+        statusCode: StatusCodes.BAD_REQUEST,
+      },
+    });
+    return;
+  }
+
   // Handle unknown errors (don't leak details in production)
   const statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
   const response: ErrorResponse = {
