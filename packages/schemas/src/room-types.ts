@@ -229,6 +229,10 @@ export const AddImageSchema = z.object({
   isPrimary: z.boolean().default(false),
 });
 
+export const RemoveImageSchema = z.object({
+  url: z.string().url(),
+});
+
 // ============================================================================
 // PARAM & QUERY SCHEMAS
 // ============================================================================
@@ -270,5 +274,6 @@ export type RoomTypeInventoryBulkInput = z.infer<
   typeof RoomTypeInventoryBulkSchema
 >;
 export type AddImageInput = z.infer<typeof AddImageSchema>;
+export type RemoveImageInput = z.infer<typeof RemoveImageSchema>;
 export type RoomTypeQueryInput = z.infer<typeof RoomTypeQuerySchema>;
 export type InventoryQueryInput = z.infer<typeof InventoryQuerySchema>;

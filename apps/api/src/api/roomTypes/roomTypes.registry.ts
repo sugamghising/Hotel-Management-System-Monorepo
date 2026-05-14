@@ -8,6 +8,7 @@ import {
   HotelIdParamSchema,
   InventoryQuerySchema,
   OrganizationIdParamSchema,
+  RemoveImageSchema,
   RoomTypeIdParamSchema,
   RoomTypeInventoryBulkSchema,
   RoomTypeInventorySchema,
@@ -388,9 +389,7 @@ roomTypesRegistry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: z.object({
-            url: z.string().url().openapi({ description: 'URL of the image to remove' }),
-          }),
+          schema: RemoveImageSchema,
         },
       },
     },

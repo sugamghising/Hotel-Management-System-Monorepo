@@ -11,6 +11,7 @@ import {
   HotelIdParamSchema,
   InventoryQuerySchema,
   OrganizationIdParamSchema,
+  RemoveImageSchema,
   RoomTypeIdParamSchema,
   RoomTypeInventoryBulkSchema,
   RoomTypeInventorySchema,
@@ -98,6 +99,7 @@ router.delete(
   requirePermission('ROOM_TYPE.UPDATE'),
   validate({
     params: OrganizationIdParamSchema.merge(HotelIdParamSchema).merge(RoomTypeIdParamSchema),
+    body: RemoveImageSchema,
   }),
   roomTypesController.removeImage
 );

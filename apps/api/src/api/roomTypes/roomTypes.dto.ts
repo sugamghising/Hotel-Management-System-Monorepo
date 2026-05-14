@@ -5,6 +5,7 @@ export {
   RoomTypeInventorySchema,
   RoomTypeInventoryBulkSchema,
   AddImageSchema,
+  RemoveImageSchema,
   RoomTypeQuerySchema,
   InventoryQuerySchema,
   RoomTypeIdParamSchema,
@@ -20,6 +21,7 @@ export {
   type RoomTypeInventoryInput,
   type RoomTypeInventoryBulkInput,
   type AddImageInput,
+  type RemoveImageInput,
   type RoomTypeQueryInput,
   type InventoryQueryInput,
 } from './roomTypes.schema';
