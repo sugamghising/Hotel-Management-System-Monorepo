@@ -233,6 +233,15 @@ export const RemoveImageSchema = z.object({
   url: z.string().url(),
 });
 
+export const ReorderImagesSchema = z.object({
+  orders: z.array(
+    z.object({
+      url: z.string().url(),
+      order: z.number().int().min(0),
+    })
+  ),
+});
+
 // ============================================================================
 // PARAM & QUERY SCHEMAS
 // ============================================================================
@@ -275,5 +284,6 @@ export type RoomTypeInventoryBulkInput = z.infer<
 >;
 export type AddImageInput = z.infer<typeof AddImageSchema>;
 export type RemoveImageInput = z.infer<typeof RemoveImageSchema>;
+export type ReorderImagesInput = z.infer<typeof ReorderImagesSchema>;
 export type RoomTypeQueryInput = z.infer<typeof RoomTypeQuerySchema>;
 export type InventoryQueryInput = z.infer<typeof InventoryQuerySchema>;

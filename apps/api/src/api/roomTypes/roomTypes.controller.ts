@@ -6,6 +6,7 @@ import {
   AddImageSchema,
   CreateRoomTypeSchema,
   type InventoryQueryInput,
+  ReorderImagesSchema,
   RemoveImageSchema,
   RoomTypeInventoryBulkSchema,
   RoomTypeInventorySchema,
@@ -314,7 +315,7 @@ export class RoomTypesController {
       organizationId: string;
       roomTypeId: string;
     };
-    const { orders } = req.body; // [{ url, order }]
+    const { orders } = ReorderImagesSchema.parse(req.body);
 
     const roomType = await roomTypesService.reorderImages(
       roomTypeId,

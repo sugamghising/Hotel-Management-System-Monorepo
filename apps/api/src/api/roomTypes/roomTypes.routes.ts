@@ -11,6 +11,7 @@ import {
   HotelIdParamSchema,
   InventoryQuerySchema,
   OrganizationIdParamSchema,
+  ReorderImagesSchema,
   RemoveImageSchema,
   RoomTypeIdParamSchema,
   RoomTypeInventoryBulkSchema,
@@ -109,6 +110,7 @@ router.post(
   requirePermission('ROOM_TYPE.UPDATE'),
   validate({
     params: OrganizationIdParamSchema.merge(HotelIdParamSchema).merge(RoomTypeIdParamSchema),
+    body: ReorderImagesSchema,
   }),
   roomTypesController.reorderImages
 );

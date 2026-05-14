@@ -8,6 +8,7 @@ import {
   HotelIdParamSchema,
   InventoryQuerySchema,
   OrganizationIdParamSchema,
+  ReorderImagesSchema,
   RemoveImageSchema,
   RoomTypeIdParamSchema,
   RoomTypeInventoryBulkSchema,
@@ -414,14 +415,7 @@ roomTypesRegistry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: z.object({
-            orders: z.array(
-              z.object({
-                url: z.string().url(),
-                order: z.number().int().min(0),
-              })
-            ),
-          }),
+          schema: ReorderImagesSchema,
         },
       },
     },
