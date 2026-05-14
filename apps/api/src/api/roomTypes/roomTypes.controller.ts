@@ -4,6 +4,7 @@ import { asyncHandler } from "../../core";
 import { BadRequestError } from "../../core/errors";
 import {
   AddImageSchema,
+  CheckAvailabilitySchema,
   CreateRoomTypeSchema,
   type InventoryQueryInput,
   ReorderImagesSchema,
@@ -434,12 +435,14 @@ export class RoomTypesController {
    */
   checkAvailability = asyncHandler(async (req: Request, res: Response) => {
     const { roomTypeId } = req.params as { roomTypeId: string };
-    const { checkIn, checkOut, adults, children } = req.body;
+    const { checkIn, checkOut, adults, children } = CheckAvailabilitySchema.parse(
+      req.body,
+    );
 
     const result = await roomTypesService.checkAvailability(
       roomTypeId,
-      new Date(checkIn),
-      new Date(checkOut),
+      checkIn,
+      checkOut,
       { adults, children },
     );
 

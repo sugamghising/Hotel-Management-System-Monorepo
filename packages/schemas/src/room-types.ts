@@ -272,6 +272,18 @@ export const InventoryQuerySchema = z.object({
   endDate: z.coerce.date(),
 });
 
+export const CheckAvailabilitySchema = z
+  .object({
+    checkIn: z.coerce.date(),
+    checkOut: z.coerce.date(),
+    adults: z.number().int().min(1),
+    children: z.number().int().min(0),
+  })
+  .refine((data) => data.checkOut > data.checkIn, {
+    message: "Check-out date must be after check-in date",
+    path: ["checkOut"],
+  });
+
 // ============================================================================
 // TYPE EXPORTS
 // ============================================================================
@@ -287,3 +299,4 @@ export type RemoveImageInput = z.infer<typeof RemoveImageSchema>;
 export type ReorderImagesInput = z.infer<typeof ReorderImagesSchema>;
 export type RoomTypeQueryInput = z.infer<typeof RoomTypeQuerySchema>;
 export type InventoryQueryInput = z.infer<typeof InventoryQuerySchema>;
+export type CheckAvailabilityInput = z.infer<typeof CheckAvailabilitySchema>;

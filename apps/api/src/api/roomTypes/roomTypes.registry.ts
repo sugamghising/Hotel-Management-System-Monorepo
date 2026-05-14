@@ -4,6 +4,7 @@ import { OpenAPIRegistry } from '@asteasolutions/zod-to-openapi';
 import { StatusCodes } from 'http-status-codes';
 import {
   BedTypeSchema,
+  CheckAvailabilitySchema,
   CreateRoomTypeSchema,
   HotelIdParamSchema,
   InventoryQuerySchema,
@@ -513,12 +514,7 @@ roomTypesRegistry.registerPath({
     body: {
       content: {
         'application/json': {
-          schema: z.object({
-            checkIn: z.string().datetime().openapi({ description: 'Check-in date (ISO 8601)' }),
-            checkOut: z.string().datetime().openapi({ description: 'Check-out date (ISO 8601)' }),
-            adults: z.number().int().min(1).openapi({ description: 'Number of adults' }),
-            children: z.number().int().min(0).openapi({ description: 'Number of children' }),
-          }),
+          schema: CheckAvailabilitySchema,
         },
       },
     },

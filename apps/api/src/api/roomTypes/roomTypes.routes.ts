@@ -8,6 +8,7 @@ import { lazyMulter } from '../../core/middleware/lazyMulter';
 import { parseMultipartFields } from '../../core/middleware/parseMultipartFields';
 import {
   CreateRoomTypeSchema,
+  CheckAvailabilitySchema,
   HotelIdParamSchema,
   InventoryQuerySchema,
   OrganizationIdParamSchema,
@@ -160,6 +161,7 @@ router.post(
   requirePermission('ROOM_TYPE.READ'),
   validate({
     params: OrganizationIdParamSchema.merge(HotelIdParamSchema).merge(RoomTypeIdParamSchema),
+    body: CheckAvailabilitySchema,
   }),
   roomTypesController.checkAvailability
 );
