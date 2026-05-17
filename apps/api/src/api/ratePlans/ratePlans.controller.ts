@@ -271,7 +271,7 @@ export class RatePlansController {
     await ratePlansService.deleteOverride(ratePlanId, organizationId, new Date(date));
 
     handleServiceResponse(
-      ServiceResponse.success(null, 'Rate override deleted', StatusCodes.NO_CONTENT),
+      ServiceResponse.success(null, 'Rate override deleted', StatusCodes.OK),
       res
     );
   });
