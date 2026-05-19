@@ -3,6 +3,7 @@ import { BadRequestError, ConflictError, ForbiddenError, NotFoundError } from '.
 import { logger } from '../../core/logger';
 import { prisma } from '../../database/prisma';
 import { Prisma } from '../../generated/prisma';
+import type { RateBreakdownItem } from '../reservations/reservations.types';
 import { type FolioRepository, folioRepository } from './folio.repository';
 import type {
   CreateInvoiceInput,
@@ -202,6 +203,136 @@ export class FolioService {
         dueDate: i.dueDate,
       })),
     };
+  }
+
+  /**
+   * Creates initial room-charge folio lines for a reservation when missing.
+   *
+   * It checks existing room charges to avoid duplicates and uses the reservation
+   * rate breakdown to post one room charge per night.
+   *
+   * @param reservationId - Reservation UUID to initialize folio entries for.
+   * @param organizationId - Organization UUID used for access validation.
+   * @param createdBy - Optional actor ID used for posting attribution.
+   * @param hotelId - Optional hotel UUID for stricter reservation scope checks.
+   * @returns Count of newly created folio items.
+   */
+  async createForReservation(
+    reservationId: string,
+    organizationId: string,
+    createdBy?: string,
+    hotelId?: string
+  ): Promise<{ created: number }> {
+    const actorId = createdBy ?? config.system.userId;
+    const reservation = await this.verifyReservationAccess(reservationId, organizationId, hotelId);
+
+    const breakdown = Array.isArray(reservation.rateBreakdown)
+      ? reservation.rateBreakdown
+          .map((item) => {
+            if (!item || typeof item !== 'object' || Array.isArray(item)) {
+              return null;
+            }
+            const record = item as Record<string, unknown>;
+            const date = typeof record['date'] === 'string' ? (record['date'] as string) : null;
+            const rate = Number(record['rate']);
+            const tax = Number(record['tax']);
+            const total = Number(record['total']);
+            if (!date || Number.isNaN(rate) || Number.isNaN(tax) || Number.isNaN(total)) {
+              return null;
+            }
+            return { date, rate, tax, total } satisfies RateBreakdownItem;
+          })
+          .filter((item): item is RateBreakdownItem => item !== null)
+      : [];
+
+    const existingCharges = await this.folioRepo.findFolioItemsByReservation(reservationId, {
+      itemTypes: ['ROOM_CHARGE'],
+      includeVoided: false,
+    });
+    const existingDates = new Set(
+      existingCharges.map((charge) => charge.businessDate.toISOString().split('T')[0])
+    );
+
+    const roomTypeName = reservation.rooms[0]?.roomType?.name || 'Room';
+    const postedAt = new Date();
+    const itemsToCreate: Prisma.FolioItemCreateInput[] = [];
+
+    if (breakdown.length > 0) {
+      for (const night of breakdown) {
+        const businessDate = new Date(`${night.date}T00:00:00.000Z`);
+        const dateKey = businessDate.toISOString().split('T')[0];
+        if (existingDates.has(dateKey)) {
+          continue;
+        }
+
+        const amount = Number(night.rate);
+        const taxAmount = Number(night.tax) || 0;
+        if (amount <= 0 && taxAmount <= 0) {
+          continue;
+        }
+
+        itemsToCreate.push({
+          organizationId: reservation.organizationId,
+          hotelId: reservation.hotelId,
+          reservation: { connect: { id: reservationId } },
+          itemType: 'ROOM_CHARGE',
+          description: `Room Charge - ${roomTypeName} - Night of ${night.date}`,
+          amount,
+          taxAmount,
+          quantity: 1,
+          unitPrice: amount,
+          revenueCode: 'ROOM',
+          department: 'ROOMS',
+          postedAt,
+          postedBy: actorId,
+          businessDate,
+          isVoided: false,
+          source: 'CHECKIN',
+          sourceRef: reservation.confirmationNumber,
+        });
+      }
+    } else {
+      const totalAmount = Number.parseFloat(reservation.totalAmount.toString());
+      const taxAmount = Number.parseFloat(reservation.taxAmount.toString() || '0');
+      const amount = Math.max(0, totalAmount - taxAmount);
+      const businessDate = new Date(reservation.checkInDate);
+      const dateKey = businessDate.toISOString().split('T')[0];
+
+      if (!existingDates.has(dateKey) && (amount > 0 || taxAmount > 0)) {
+        itemsToCreate.push({
+          organizationId: reservation.organizationId,
+          hotelId: reservation.hotelId,
+          reservation: { connect: { id: reservationId } },
+          itemType: 'ROOM_CHARGE',
+          description: `Room Charge - ${roomTypeName} - Night of ${dateKey}`,
+          amount,
+          taxAmount,
+          quantity: 1,
+          unitPrice: amount,
+          revenueCode: 'ROOM',
+          department: 'ROOMS',
+          postedAt,
+          postedBy: actorId,
+          businessDate,
+          isVoided: false,
+          source: 'CHECKIN',
+          sourceRef: reservation.confirmationNumber,
+        });
+      }
+    }
+
+    if (itemsToCreate.length === 0) {
+      return { created: 0 };
+    }
+
+    await prisma.$transaction(itemsToCreate.map((data) => prisma.folioItem.create({ data })));
+
+    logger.info(`Folio initialized: ${reservation.confirmationNumber}`, {
+      reservationId,
+      created: itemsToCreate.length,
+    });
+
+    return { created: itemsToCreate.length };
   }
 
   // ============================================================================
@@ -1037,6 +1168,7 @@ export class FolioService {
         rooms: {
           include: {
             room: true,
+            roomType: true,
           },
         },
       },

@@ -17,6 +17,7 @@ import {
   type ReservationsRepository,
   reservationsRepository,
 } from './reservations.repository';
+import { folioService } from '../folio/folio.service';
 import type {
   CheckInInput,
   CheckOutInput,
@@ -707,7 +708,7 @@ export class ReservationsService {
     });
 
     // Create folio if not exists
-    // await this.folioService.createForReservation(id);
+    await folioService.createForReservation(id, organizationId, _checkedInBy, reservation.hotelId);
 
     logger.info(`Guest checked in: ${reservation.confirmationNumber}`, {
       reservationId: id,

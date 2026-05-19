@@ -671,12 +671,33 @@ export class FolioRepository {
         )
       : null;
 
+    const reservationIds = inHouseReservations.map((reservation) => reservation.id);
+    const alreadyChargedReservationIds =
+      reservationIds.length > 0
+        ? new Set(
+            (
+              await prisma.folioItem.findMany({
+                where: {
+                  reservationId: { in: reservationIds },
+                  itemType: 'ROOM_CHARGE',
+                  businessDate,
+                  isVoided: false,
+                },
+                select: { reservationId: true },
+              })
+            ).map((item) => item.reservationId)
+          )
+        : new Set<string>();
+
     await prisma.$transaction(async (tx) => {
       for (const reservation of inHouseReservations) {
         const roomRate = Number.parseFloat(reservation.averageRate.toString());
 
         if (roomRate > 0) {
-          if (alreadyPostedReservationIds?.has(reservation.id)) {
+          if (
+            alreadyPostedReservationIds?.has(reservation.id) ||
+            alreadyChargedReservationIds.has(reservation.id)
+          ) {
             continue;
           }
 
