@@ -547,40 +547,87 @@ export class RoomTypesRepository {
     const end = new Date(checkOut);
     end.setHours(0, 0, 0, 0);
 
-    let refreshed = 0;
+    const dates: Date[] = [];
     const current = new Date(start);
 
     while (current < end) {
       const date = new Date(current);
       date.setHours(0, 0, 0, 0);
+      dates.push(date);
+      current.setDate(current.getDate() + 1);
+    }
 
-      const inventory = await this.getOrCreateInventory(roomTypeId, new Date(date));
-      const sold = await this.getSoldCount(roomTypeId, date);
-      const available =
-        inventory.totalRooms -
-        inventory.outOfOrder -
-        inventory.blocked -
-        sold +
-        inventory.overbookingLimit;
+    if (dates.length === 0) {
+      return 0;
+    }
 
-      await prisma.roomInventory.update({
+    const existing = await prisma.roomInventory.findMany({
+      where: {
+        roomTypeId,
+        date: {
+          gte: start,
+          lt: end,
+        },
+      },
+    });
+
+    const inventoryByDate = new Map<string, Prisma.RoomInventoryGetPayload<object>>();
+    existing.forEach((inventory) => {
+      const normalized = new Date(inventory.date);
+      normalized.setHours(0, 0, 0, 0);
+      inventoryByDate.set(normalized.toDateString(), inventory);
+    });
+
+    const defaultTotalRooms = await this.getDefaultTotalRooms(roomTypeId);
+    const soldByDate = await Promise.all(
+      dates.map(async (date) => ({
+        date,
+        sold: await this.getSoldCount(roomTypeId, date),
+      }))
+    );
+
+    const operations = soldByDate.map(({ date, sold }) => {
+      const inventory = inventoryByDate.get(date.toDateString());
+      const totalRooms = inventory?.totalRooms ?? defaultTotalRooms;
+      const outOfOrder = inventory?.outOfOrder ?? 0;
+      const blocked = inventory?.blocked ?? 0;
+      const overbookingLimit = inventory?.overbookingLimit ?? 0;
+      const available = totalRooms - outOfOrder - blocked - sold + overbookingLimit;
+
+      return prisma.roomInventory.upsert({
         where: {
           uq_inventory_roomtype_date: {
             roomTypeId,
             date,
           },
         },
-        data: {
+        create: {
+          roomTypeId,
+          date,
+          totalRooms,
+          outOfOrder,
+          blocked,
+          sold,
+          available: Math.max(0, available),
+          overbookingLimit,
+          stopSell: inventory?.stopSell ?? false,
+          minStay: inventory?.minStay ?? null,
+          maxStay: inventory?.maxStay ?? null,
+          closedToArrival: inventory?.closedToArrival ?? false,
+          closedToDeparture: inventory?.closedToDeparture ?? false,
+          rateOverride: inventory?.rateOverride ?? null,
+          reason: inventory?.reason ?? null,
+        },
+        update: {
           sold,
           available: Math.max(0, available),
         },
       });
+    });
 
-      refreshed += 1;
-      current.setDate(current.getDate() + 1);
-    }
+    const results = await prisma.$transaction(operations);
 
-    return refreshed;
+    return results.length;
   }
 
   // ============================================================================

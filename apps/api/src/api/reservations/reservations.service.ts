@@ -708,7 +708,19 @@ export class ReservationsService {
     });
 
     // Create folio if not exists
-    await folioService.createForReservation(id, organizationId, _checkedInBy, reservation.hotelId);
+    try {
+      await folioService.createForReservation(
+        id,
+        organizationId,
+        _checkedInBy,
+        reservation.hotelId
+      );
+    } catch (error) {
+      logger.error('Failed to initialize folio during check-in', {
+        reservationId: id,
+        error,
+      });
+    }
 
     logger.info(`Guest checked in: ${reservation.confirmationNumber}`, {
       reservationId: id,
@@ -797,18 +809,25 @@ export class ReservationsService {
 
     // Record payment if provided
     if (input.payment) {
-      await folioService.processPayment(
-        id,
-        organizationId,
-        {
-          amount: input.payment.amount,
-          method: input.payment.method,
-          currencyCode: reservation.currencyCode,
-          notes: 'Checkout settlement',
-        },
-        _checkedOutBy,
-        hotelId
-      );
+      try {
+        await folioService.processPayment(
+          id,
+          organizationId,
+          {
+            amount: input.payment.amount,
+            method: input.payment.method,
+            currencyCode: reservation.currencyCode,
+            notes: 'Checkout settlement',
+          },
+          _checkedOutBy,
+          hotelId
+        );
+      } catch (error) {
+        logger.error('Checkout payment processing failed', {
+          reservationId: id,
+          error,
+        });
+      }
     }
 
     logger.info(`Guest checked out: ${reservation.confirmationNumber}`, {
@@ -1011,11 +1030,18 @@ export class ReservationsService {
       throw new NotFoundError('Reservation room');
     }
 
-    await this.roomTypeRepo.refreshInventoryForStay(
-      resRoom.roomTypeId,
-      reservation.checkInDate,
-      reservation.checkOutDate
-    );
+    try {
+      await this.roomTypeRepo.refreshInventoryForStay(
+        resRoom.roomTypeId,
+        reservation.checkInDate,
+        reservation.checkOutDate
+      );
+    } catch (error) {
+      logger.error('Failed to refresh inventory after cancellation', {
+        reservationId: id,
+        error,
+      });
+    }
 
     logger.info(`Reservation cancelled: ${reservation.confirmationNumber}`, {
       reservationId: id,

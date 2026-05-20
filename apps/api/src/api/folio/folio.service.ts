@@ -255,7 +255,7 @@ export class FolioService {
 
     const roomTypeName = reservation.rooms[0]?.roomType?.name || 'Room';
     const postedAt = new Date();
-    const itemsToCreate: Prisma.FolioItemCreateInput[] = [];
+    const itemsToCreate: Prisma.FolioItemCreateManyInput[] = [];
 
     if (breakdown.length > 0) {
       for (const night of breakdown) {
@@ -274,7 +274,7 @@ export class FolioService {
         itemsToCreate.push({
           organizationId: reservation.organizationId,
           hotelId: reservation.hotelId,
-          reservation: { connect: { id: reservationId } },
+          reservationId,
           itemType: 'ROOM_CHARGE',
           description: `Room Charge - ${roomTypeName} - Night of ${night.date}`,
           amount,
@@ -302,7 +302,7 @@ export class FolioService {
         itemsToCreate.push({
           organizationId: reservation.organizationId,
           hotelId: reservation.hotelId,
-          reservation: { connect: { id: reservationId } },
+          reservationId,
           itemType: 'ROOM_CHARGE',
           description: `Room Charge - ${roomTypeName} - Night of ${dateKey}`,
           amount,
@@ -325,14 +325,14 @@ export class FolioService {
       return { created: 0 };
     }
 
-    await prisma.$transaction(itemsToCreate.map((data) => prisma.folioItem.create({ data })));
+    const { count } = await prisma.folioItem.createMany({ data: itemsToCreate });
 
     logger.info(`Folio initialized: ${reservation.confirmationNumber}`, {
       reservationId,
-      created: itemsToCreate.length,
+      created: count,
     });
 
-    return { created: itemsToCreate.length };
+    return { created: count };
   }
 
   // ============================================================================

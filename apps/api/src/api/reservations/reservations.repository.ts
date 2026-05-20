@@ -1,14 +1,9 @@
-import { NotFoundError } from "../../core/errors";
-import { prisma } from "../../database/prisma";
-import type { $Enums, Prisma } from "../../generated/prisma";
-import type {
-  AssignmentType,
-  Reservation,
-  ReservationStatus,
-} from "./reservations.types";
+import { NotFoundError } from '../../core/errors';
+import { prisma } from '../../database/prisma';
+import type { $Enums, Prisma } from '../../generated/prisma';
+import type { AssignmentType, Reservation, ReservationStatus } from './reservations.types';
 
-const UUID_REGEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 /**
  * Normalizes optional user identifiers to nullable UUID values for persistence.
@@ -39,10 +34,7 @@ export class ReservationsRepository {
    * @param include - Optional Prisma include overrides merged into default relation includes.
    * @returns Reservation with relations, or `null` when not found.
    */
-  async findById(
-    id: string,
-    include?: Prisma.ReservationInclude,
-  ): Promise<Reservation | null> {
+  async findById(id: string, include?: Prisma.ReservationInclude): Promise<Reservation | null> {
     return prisma.reservation.findUnique({
       where: { id },
       include: {
@@ -66,10 +58,7 @@ export class ReservationsRepository {
    * @param hotelId - Hotel UUID used to scope the lookup.
    * @returns Matching reservation, or `null` when no active booking uses the reference.
    */
-  async findByExternalRef(
-    externalRef: string,
-    hotelId: string,
-  ): Promise<Reservation | null> {
+  async findByExternalRef(externalRef: string, hotelId: string): Promise<Reservation | null> {
     return prisma.reservation.findFirst({
       where: {
         externalRef,
@@ -115,7 +104,7 @@ export class ReservationsRepository {
       createdFrom?: Date;
       createdTo?: Date;
     },
-    pagination?: { page: number; limit: number },
+    pagination?: { page: number; limit: number }
   ): Promise<{ reservations: Reservation[]; total: number }> {
     const where: Prisma.ReservationWhereInput = {
       hotelId,
@@ -141,8 +130,8 @@ export class ReservationsRepository {
     if (filters.guestName) {
       where.guest = {
         OR: [
-          { firstName: { contains: filters.guestName, mode: "insensitive" } },
-          { lastName: { contains: filters.guestName, mode: "insensitive" } },
+          { firstName: { contains: filters.guestName, mode: 'insensitive' } },
+          { lastName: { contains: filters.guestName, mode: 'insensitive' } },
         ],
       };
     }
@@ -161,7 +150,7 @@ export class ReservationsRepository {
       where.rooms = {
         some: {
           room: {
-            roomNumber: { contains: filters.roomNumber, mode: "insensitive" },
+            roomNumber: { contains: filters.roomNumber, mode: 'insensitive' },
           },
         },
       };
@@ -207,7 +196,7 @@ export class ReservationsRepository {
               take: pagination.limit,
             }
           : {}),
-        orderBy: { checkInDate: "asc" as const },
+        orderBy: { checkInDate: 'asc' as const },
       }),
       prisma.reservation.count({ where }),
     ]);
@@ -224,7 +213,7 @@ export class ReservationsRepository {
    */
   async create(
     data: ReservationCreateInput,
-    roomData: Prisma.ReservationRoomUncheckedCreateWithoutReservationInput,
+    roomData: Prisma.ReservationRoomUncheckedCreateWithoutReservationInput
   ): Promise<Reservation> {
     return prisma.$transaction(async (tx) => {
       // Create reservation
@@ -292,7 +281,7 @@ export class ReservationsRepository {
       where: { id },
       data: {
         deletedAt: new Date(),
-        status: "CANCELLED",
+        status: 'CANCELLED',
       },
     });
   }
@@ -342,7 +331,7 @@ export class ReservationsRepository {
       idDocumentId?: string;
       notes?: string;
       assignmentType?: AssignmentType;
-    } = {},
+    } = {}
   ): Promise<void> {
     const now = new Date();
     const earlyCheckIn = options.earlyCheckIn ?? false;
@@ -358,8 +347,8 @@ export class ReservationsRepository {
       const reservation = await tx.reservation.update({
         where: { id: reservationId },
         data: {
-          status: "CHECKED_IN",
-          checkInStatus: earlyCheckIn ? "EARLY_CHECK_IN" : "CHECKED_IN",
+          status: 'CHECKED_IN',
+          checkInStatus: earlyCheckIn ? 'EARLY_CHECK_IN' : 'CHECKED_IN',
           modifiedAt: now,
         },
         select: {
@@ -372,7 +361,7 @@ export class ReservationsRepository {
         where: { id: reservationRoomId },
         data: {
           roomId,
-          status: "OCCUPIED",
+          status: 'OCCUPIED',
           assignedAt: now,
           checkInAt: now,
         },
@@ -381,7 +370,7 @@ export class ReservationsRepository {
       await tx.room.update({
         where: { id: roomId },
         data: {
-          status: "OCCUPIED_CLEAN",
+          status: 'OCCUPIED_CLEAN',
         },
       });
 
@@ -404,7 +393,7 @@ export class ReservationsRepository {
           reservationId,
           reservationRoomId,
           roomId,
-          assignmentType: options.assignmentType ?? "INITIAL",
+          assignmentType: options.assignmentType ?? 'INITIAL',
           previousRoomId: previousReservationRoom?.roomId ?? null,
           reason: null,
           isActive: true,
@@ -422,18 +411,12 @@ export class ReservationsRepository {
           reservationId,
           reservationRoomId,
           roomId,
-          assignmentType: options.assignmentType ?? "INITIAL",
+          assignmentType: options.assignmentType ?? 'INITIAL',
           earlyCheckIn,
           keysIssued: options.keysIssued ?? 1,
-          ...(options.preAuthAmount !== undefined
-            ? { preAuthAmount: options.preAuthAmount }
-            : {}),
-          ...(options.keyCardRef !== undefined
-            ? { keyCardRef: options.keyCardRef }
-            : {}),
-          ...(options.idDocumentId !== undefined
-            ? { idDocumentId: options.idDocumentId }
-            : {}),
+          ...(options.preAuthAmount !== undefined ? { preAuthAmount: options.preAuthAmount } : {}),
+          ...(options.keyCardRef !== undefined ? { keyCardRef: options.keyCardRef } : {}),
+          ...(options.idDocumentId !== undefined ? { idDocumentId: options.idDocumentId } : {}),
           ...(options.notes !== undefined ? { notes: options.notes } : {}),
           checkedInAt: now,
           checkedInBy: asNullableUuid(options.checkedInBy),
@@ -443,8 +426,8 @@ export class ReservationsRepository {
       await tx.outboxEvent.createMany({
         data: [
           {
-            eventType: "reservation.checked_in",
-            aggregateType: "RESERVATION",
+            eventType: 'reservation.checked_in',
+            aggregateType: 'RESERVATION',
             aggregateId: reservationId,
             payload: {
               organizationId: reservation.organizationId,
@@ -454,12 +437,12 @@ export class ReservationsRepository {
               roomId,
               checkedInAt: now.toISOString(),
               earlyCheckIn,
-              assignmentType: options.assignmentType ?? "INITIAL",
+              assignmentType: options.assignmentType ?? 'INITIAL',
             },
           },
           {
-            eventType: "room.occupied",
-            aggregateType: "ROOM",
+            eventType: 'room.occupied',
+            aggregateType: 'ROOM',
             aggregateId: roomId,
             payload: {
               organizationId: reservation.organizationId,
@@ -506,7 +489,7 @@ export class ReservationsRepository {
       keysReturned?: number;
       satisfactionScore?: number;
       notes?: string;
-    } = {},
+    } = {}
   ): Promise<void> {
     const now = new Date();
 
@@ -514,8 +497,8 @@ export class ReservationsRepository {
       const reservation = await tx.reservation.update({
         where: { id: reservationId },
         data: {
-          status: "CHECKED_OUT",
-          checkInStatus: lateCheckOut ? "LATE_CHECK_OUT" : "CHECKED_OUT",
+          status: 'CHECKED_OUT',
+          checkInStatus: lateCheckOut ? 'LATE_CHECK_OUT' : 'CHECKED_OUT',
           modifiedAt: now,
         },
         select: {
@@ -527,7 +510,7 @@ export class ReservationsRepository {
       await tx.reservationRoom.update({
         where: { id: reservationRoomId },
         data: {
-          status: "CHECKED_OUT",
+          status: 'CHECKED_OUT',
           checkOutAt: now,
         },
       });
@@ -535,7 +518,7 @@ export class ReservationsRepository {
       await tx.room.update({
         where: { id: roomId },
         data: {
-          status: "VACANT_DIRTY",
+          status: 'VACANT_DIRTY',
         },
       });
 
@@ -560,9 +543,7 @@ export class ReservationsRepository {
           reservationRoomId,
           roomId,
           lateCheckOut,
-          ...(options.lateFeeAmount !== undefined
-            ? { lateFeeAmount: options.lateFeeAmount }
-            : {}),
+          ...(options.lateFeeAmount !== undefined ? { lateFeeAmount: options.lateFeeAmount } : {}),
           finalBalance: options.finalBalance ?? 0,
           ...(options.settlementAmount !== undefined
             ? { settlementAmount: options.settlementAmount }
@@ -571,9 +552,7 @@ export class ReservationsRepository {
             ? (options.paymentMethod as $Enums.PaymentMethod)
             : null,
           invoiceId: null,
-          ...(options.keysReturned !== undefined
-            ? { keysReturned: options.keysReturned }
-            : {}),
+          ...(options.keysReturned !== undefined ? { keysReturned: options.keysReturned } : {}),
           ...(options.satisfactionScore !== undefined
             ? { satisfactionScore: options.satisfactionScore }
             : {}),
@@ -586,8 +565,8 @@ export class ReservationsRepository {
       await tx.outboxEvent.createMany({
         data: [
           {
-            eventType: "reservation.checked_out",
-            aggregateType: "RESERVATION",
+            eventType: 'reservation.checked_out',
+            aggregateType: 'RESERVATION',
             aggregateId: reservationId,
             payload: {
               organizationId,
@@ -600,8 +579,8 @@ export class ReservationsRepository {
             },
           },
           {
-            eventType: "room.vacated",
-            aggregateType: "ROOM",
+            eventType: 'room.vacated',
+            aggregateType: 'ROOM',
             aggregateId: roomId,
             payload: {
               organizationId: reservation.organizationId,
@@ -626,16 +605,11 @@ export class ReservationsRepository {
    * @param fee - Optional cancellation fee amount.
    * @returns Resolves when cancellation fields are persisted.
    */
-  async cancel(
-    id: string,
-    reason: string,
-    cancelledBy: string,
-    fee?: number,
-  ): Promise<void> {
+  async cancel(id: string, reason: string, cancelledBy: string, fee?: number): Promise<void> {
     await prisma.reservation.update({
       where: { id },
       data: {
-        status: "CANCELLED",
+        status: 'CANCELLED',
         cancelledAt: new Date(),
         cancelledBy,
         cancellationReason: reason,
@@ -659,7 +633,7 @@ export class ReservationsRepository {
     options: {
       reason?: string;
       noShowFee?: number;
-    } = {},
+    } = {}
   ): Promise<void> {
     const now = new Date();
 
@@ -667,7 +641,7 @@ export class ReservationsRepository {
       const reservation = await tx.reservation.update({
         where: { id },
         data: {
-          status: "NO_SHOW",
+          status: 'NO_SHOW',
           noShow: true,
           ...(chargeFee
             ? options.noShowFee !== undefined
@@ -685,8 +659,8 @@ export class ReservationsRepository {
 
       await tx.outboxEvent.create({
         data: {
-          eventType: "reservation.no_show",
-          aggregateType: "RESERVATION",
+          eventType: 'reservation.no_show',
+          aggregateType: 'RESERVATION',
           aggregateId: id,
           payload: {
             organizationId: reservation.organizationId,
@@ -694,9 +668,7 @@ export class ReservationsRepository {
             reservationId: id,
             markedAt: now.toISOString(),
             chargeNoShowFee: chargeFee,
-            ...(options.noShowFee !== undefined
-              ? { noShowFee: options.noShowFee }
-              : {}),
+            ...(options.noShowFee !== undefined ? { noShowFee: options.noShowFee } : {}),
             ...(options.reason ? { reason: options.reason } : {}),
           },
         },
@@ -729,7 +701,7 @@ export class ReservationsRepository {
       assignmentType?: AssignmentType;
       reason?: string;
       previousRoomId?: string;
-    } = {},
+    } = {}
   ): Promise<void> {
     const now = new Date();
 
@@ -750,7 +722,7 @@ export class ReservationsRepository {
       });
 
       if (!current) {
-        throw new NotFoundError("Reservation room not found");
+        throw new NotFoundError('Reservation room not found');
       }
 
       await tx.reservationRoom.update({
@@ -759,18 +731,15 @@ export class ReservationsRepository {
           roomId,
           assignedAt: now,
           assignedBy: asNullableUuid(assignedBy),
-          status:
-            current.reservation.status === "CHECKED_IN"
-              ? "OCCUPIED"
-              : "ASSIGNED",
+          status: current.reservation.status === 'CHECKED_IN' ? 'OCCUPIED' : 'ASSIGNED',
         },
       });
 
-      if (current.reservation.status === "CHECKED_IN") {
+      if (current.reservation.status === 'CHECKED_IN') {
         await tx.room.update({
           where: { id: roomId },
           data: {
-            status: "OCCUPIED_CLEAN",
+            status: 'OCCUPIED_CLEAN',
           },
         });
 
@@ -778,7 +747,7 @@ export class ReservationsRepository {
           await tx.room.update({
             where: { id: current.roomId },
             data: {
-              status: "VACANT_DIRTY",
+              status: 'VACANT_DIRTY',
             },
           });
         }
@@ -803,7 +772,7 @@ export class ReservationsRepository {
           reservationId: current.reservationId,
           reservationRoomId,
           roomId,
-          assignmentType: options.assignmentType ?? "MANUAL",
+          assignmentType: options.assignmentType ?? 'MANUAL',
           previousRoomId: options.previousRoomId ?? current.roomId ?? null,
           reason: options.reason ?? null,
           isActive: true,
@@ -814,15 +783,11 @@ export class ReservationsRepository {
         },
       });
 
-      if (
-        options.assignmentType === "UPGRADE" &&
-        current.roomId &&
-        current.roomId !== roomId
-      ) {
+      if (options.assignmentType === 'UPGRADE' && current.roomId && current.roomId !== roomId) {
         await tx.outboxEvent.create({
           data: {
-            eventType: "room.upgraded",
-            aggregateType: "ROOM",
+            eventType: 'room.upgraded',
+            aggregateType: 'ROOM',
             aggregateId: roomId,
             payload: {
               organizationId: current.reservation.organizationId,
@@ -851,7 +816,7 @@ export class ReservationsRepository {
         roomId: null,
         assignedAt: null,
         assignedBy: null,
-        status: "RESERVED",
+        status: 'RESERVED',
       },
     });
   }
@@ -866,22 +831,19 @@ export class ReservationsRepository {
    * @param roomTypeId - Room type UUID constraint for candidate rooms.
    * @returns Assigned room UUID, or `null` when auto-assignment cannot be completed.
    */
-  async autoAssignRoom(
-    reservationId: string,
-    roomTypeId: string,
-  ): Promise<string | null> {
+  async autoAssignRoom(reservationId: string, roomTypeId: string): Promise<string | null> {
     // Find best available room
     const availableRoom = await prisma.room.findFirst({
       where: {
         roomTypeId,
-        status: { in: ["VACANT_CLEAN", "VACANT_DIRTY"] },
+        status: { in: ['VACANT_CLEAN', 'VACANT_DIRTY'] },
         isOutOfOrder: false,
         deletedAt: null,
       },
       orderBy: [
-        { status: "asc" }, // VACANT_CLEAN first
-        { floor: "asc" },
-        { roomNumber: "asc" },
+        { status: 'asc' }, // VACANT_CLEAN first
+        { floor: 'asc' },
+        { roomNumber: 'asc' },
       ],
     });
 
@@ -894,8 +856,8 @@ export class ReservationsRepository {
 
     if (!resRoom) return null;
 
-    await this.assignRoom(resRoom.id, availableRoom.id, "SYSTEM_AUTO", {
-      assignmentType: "AUTO",
+    await this.assignRoom(resRoom.id, availableRoom.id, 'SYSTEM_AUTO', {
+      assignmentType: 'AUTO',
     });
 
     return availableRoom.id;
@@ -922,7 +884,7 @@ export class ReservationsRepository {
     hotelId: string,
     roomTypeId: string,
     checkIn: Date,
-    checkOut: Date,
+    checkOut: Date
   ): Promise<{ available: boolean; roomsAvailable: number }> {
     const totalRooms = await prisma.room.count({
       where: {
@@ -939,11 +901,8 @@ export class ReservationsRepository {
         roomTypeId,
         reservation: {
           hotelId,
-          status: { in: ["CONFIRMED", "CHECKED_IN"] },
-          AND: [
-            { checkInDate: { lt: checkOut } },
-            { checkOutDate: { gt: checkIn } },
-          ],
+          status: { in: ['CONFIRMED', 'CHECKED_IN'] },
+          AND: [{ checkInDate: { lt: checkOut } }, { checkOutDate: { gt: checkIn } }],
         },
       },
     });
@@ -987,7 +946,7 @@ export class ReservationsRepository {
       where: {
         hotelId,
         checkInDate: date,
-        status: { in: ["CONFIRMED", "CHECKED_IN"] },
+        status: { in: ['CONFIRMED', 'CHECKED_IN'] },
         deletedAt: null,
       },
       include: {
@@ -1005,7 +964,7 @@ export class ReservationsRepository {
           },
         },
       },
-      orderBy: { arrivalTime: "asc" },
+      orderBy: { arrivalTime: 'asc' },
     }) as unknown as Promise<Reservation[]>;
   }
 
@@ -1016,15 +975,12 @@ export class ReservationsRepository {
    * @param date - Business date used for `checkOutDate` matching.
    * @returns Checked-in reservations departing on the date.
    */
-  async getTodayDepartures(
-    hotelId: string,
-    date: Date,
-  ): Promise<Reservation[]> {
+  async getTodayDepartures(hotelId: string, date: Date): Promise<Reservation[]> {
     return prisma.reservation.findMany({
       where: {
         hotelId,
         checkOutDate: date,
-        status: "CHECKED_IN",
+        status: 'CHECKED_IN',
         deletedAt: null,
       },
       include: {
@@ -1040,7 +996,7 @@ export class ReservationsRepository {
           },
         },
       },
-      orderBy: { departureTime: "asc" },
+      orderBy: { departureTime: 'asc' },
     }) as unknown as Promise<Reservation[]>;
   }
 
@@ -1054,7 +1010,7 @@ export class ReservationsRepository {
     return prisma.reservation.findMany({
       where: {
         hotelId,
-        status: "CHECKED_IN",
+        status: 'CHECKED_IN',
         deletedAt: null,
       },
       include: {
@@ -1072,7 +1028,7 @@ export class ReservationsRepository {
           },
         },
       },
-      orderBy: { checkInDate: "desc" },
+      orderBy: { checkInDate: 'desc' },
     }) as unknown as Promise<Reservation[]>;
   }
 
@@ -1093,17 +1049,15 @@ export class ReservationsRepository {
   async generateConfirmationNumber(_hotelId: string): Promise<string> {
     const date = new Date();
     const year = date.getFullYear().toString().slice(-2);
-    const month = (date.getMonth() + 1).toString().padStart(2, "0");
-    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
 
     // Use a random suffix with retry loop to avoid race conditions on concurrent creates
     const maxAttempts = 10;
     const MIN_SUFFIX = 1000;
     const SUFFIX_RANGE = 9000; // generates 4-digit suffix: MIN_SUFFIX to MIN_SUFFIX + SUFFIX_RANGE - 1
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const randomSuffix = Math.floor(
-        Math.random() * SUFFIX_RANGE + MIN_SUFFIX,
-      ).toString();
+      const randomSuffix = Math.floor(Math.random() * SUFFIX_RANGE + MIN_SUFFIX).toString();
       const confirmationNumber = `${year}${month}${day}${randomSuffix}`;
 
       const existing = await prisma.reservation.findUnique({
@@ -1142,7 +1096,7 @@ export class ReservationsRepository {
     reservationId: string,
     splitDate: Date,
     newReservationData: Prisma.ReservationUncheckedCreateInput,
-    newRoomData: Prisma.ReservationRoomUncheckedCreateWithoutReservationInput,
+    newRoomData: Prisma.ReservationRoomUncheckedCreateWithoutReservationInput
   ): Promise<{ original: Reservation; new: Reservation }> {
     return prisma.$transaction(async (tx) => {
       const original = await tx.reservation.findUnique({
@@ -1150,7 +1104,7 @@ export class ReservationsRepository {
         include: { rooms: true },
       });
 
-      if (!original) throw new Error("Reservation not found");
+      if (!original) throw new Error('Reservation not found');
 
       // Update original to end at split date
       const updatedOriginal = await tx.reservation.update({
@@ -1158,8 +1112,7 @@ export class ReservationsRepository {
         data: {
           checkOutDate: splitDate,
           nights: Math.ceil(
-            (splitDate.getTime() - original.checkInDate.getTime()) /
-              (1000 * 60 * 60 * 24),
+            (splitDate.getTime() - original.checkInDate.getTime()) / (1000 * 60 * 60 * 24)
           ),
           modifiedAt: new Date(),
         },
@@ -1176,8 +1129,7 @@ export class ReservationsRepository {
           checkInDate: splitDate,
           checkOutDate: original.checkOutDate,
           nights: Math.ceil(
-            (original.checkOutDate.getTime() - splitDate.getTime()) /
-              (1000 * 60 * 60 * 24),
+            (original.checkOutDate.getTime() - splitDate.getTime()) / (1000 * 60 * 60 * 24)
           ),
         },
       });
@@ -1216,16 +1168,13 @@ export class ReservationsRepository {
    * @param excludeReservationId - Optional reservation UUID to ignore during checks.
    * @returns `true` when an active assigned/occupied reservation exists for the room.
    */
-  async hasActiveReservation(
-    roomId: string,
-    excludeReservationId?: string,
-  ): Promise<boolean> {
+  async hasActiveReservation(roomId: string, excludeReservationId?: string): Promise<boolean> {
     const count = await prisma.reservationRoom.count({
       where: {
         roomId,
-        status: { in: ["ASSIGNED", "OCCUPIED"] },
+        status: { in: ['ASSIGNED', 'OCCUPIED'] },
         reservation: {
-          status: { in: ["CONFIRMED", "CHECKED_IN"] },
+          status: { in: ['CONFIRMED', 'CHECKED_IN'] },
           ...(excludeReservationId && { id: { not: excludeReservationId } }),
         },
       },
