@@ -797,7 +797,18 @@ export class ReservationsService {
 
     // Record payment if provided
     if (input.payment) {
-      // await this.recordPayment(id, input.payment.amount, input.payment.method);
+      await folioService.processPayment(
+        id,
+        organizationId,
+        {
+          amount: input.payment.amount,
+          method: input.payment.method,
+          currencyCode: reservation.currencyCode,
+          notes: 'Checkout settlement',
+        },
+        _checkedOutBy,
+        hotelId
+      );
     }
 
     logger.info(`Guest checked out: ${reservation.confirmationNumber}`, {
@@ -995,8 +1006,16 @@ export class ReservationsService {
       fee > 0 ? fee : undefined
     );
 
-    // Release room inventory
-    // await this.inventoryService.release(reservation.rooms[0].roomTypeId, reservation.checkInDate, reservation.checkOutDate);
+    const resRoom = (reservation as ReservationWithRelations).rooms?.[0];
+    if (!resRoom?.roomTypeId) {
+      throw new NotFoundError('Reservation room');
+    }
+
+    await this.roomTypeRepo.refreshInventoryForStay(
+      resRoom.roomTypeId,
+      reservation.checkInDate,
+      reservation.checkOutDate
+    );
 
     logger.info(`Reservation cancelled: ${reservation.confirmationNumber}`, {
       reservationId: id,

@@ -529,6 +529,60 @@ export class RoomTypesRepository {
     });
   }
 
+  /**
+   * Recomputes sold/available for each stay date and ensures inventory rows exist.
+   *
+   * @param roomTypeId - Room type UUID.
+   * @param checkIn - Inclusive check-in date.
+   * @param checkOut - Exclusive check-out date.
+   * @returns Number of inventory rows refreshed.
+   */
+  async refreshInventoryForStay(
+    roomTypeId: string,
+    checkIn: Date,
+    checkOut: Date
+  ): Promise<number> {
+    const start = new Date(checkIn);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(checkOut);
+    end.setHours(0, 0, 0, 0);
+
+    let refreshed = 0;
+    const current = new Date(start);
+
+    while (current < end) {
+      const date = new Date(current);
+      date.setHours(0, 0, 0, 0);
+
+      const inventory = await this.getOrCreateInventory(roomTypeId, new Date(date));
+      const sold = await this.getSoldCount(roomTypeId, date);
+      const available =
+        inventory.totalRooms -
+        inventory.outOfOrder -
+        inventory.blocked -
+        sold +
+        inventory.overbookingLimit;
+
+      await prisma.roomInventory.update({
+        where: {
+          uq_inventory_roomtype_date: {
+            roomTypeId,
+            date,
+          },
+        },
+        data: {
+          sold,
+          available: Math.max(0, available),
+        },
+      });
+
+      refreshed += 1;
+      current.setDate(current.getDate() + 1);
+    }
+
+    return refreshed;
+  }
+
   // ============================================================================
   // STATS & COUNTS
   // ============================================================================
