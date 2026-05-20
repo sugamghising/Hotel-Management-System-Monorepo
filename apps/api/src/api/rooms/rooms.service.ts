@@ -299,7 +299,9 @@ export class RoomsService {
           cleaningPriority: row.cleaningPriority,
           ...(row.currentGuest ? { currentGuest: row.currentGuest } : {}),
           ...(row.nextArrival
-            ? { nextArrival: new Date(row.nextArrival).toISOString().split('T')[0] }
+            ? {
+                nextArrival: new Date(row.nextArrival).toISOString().split('T')[0],
+              }
             : {}),
         });
       }
@@ -445,7 +447,7 @@ export class RoomsService {
       lastCleanedAt
     );
 
-    // Create audit log entry
+    // TODO: Create audit log entry
     // await auditService.logRoomStatusChange(...)
 
     logger.info(`Room status changed: ${room.roomNumber} ${room.status} -> ${input.status}`, {
@@ -523,7 +525,7 @@ export class RoomsService {
       maintenanceStatus
     );
 
-    // Create maintenance request if needed
+    // TODO: Create maintenance request if needed
     if (input.maintenanceRequired) {
       // await maintenanceService.createFromOOO(...)
     }
@@ -965,7 +967,13 @@ export class RoomsService {
    */
   private extractRoomTypeInfo(room: Room | null): RoomTypeInfo {
     if (!room) {
-      return { id: '', code: 'UNKNOWN', name: 'Unknown', baseOccupancy: 2, maxOccupancy: 2 };
+      return {
+        id: '',
+        code: 'UNKNOWN',
+        name: 'Unknown',
+        baseOccupancy: 2,
+        maxOccupancy: 2,
+      };
     }
     const roomWithType = room as unknown as RoomWithType;
     return (

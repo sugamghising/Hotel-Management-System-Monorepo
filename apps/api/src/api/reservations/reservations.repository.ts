@@ -191,7 +191,10 @@ export class ReservationsRepository {
           },
         },
         ...(pagination
-          ? { skip: (pagination.page - 1) * pagination.limit, take: pagination.limit }
+          ? {
+              skip: (pagination.page - 1) * pagination.limit,
+              take: pagination.limit,
+            }
           : {}),
         orderBy: { checkInDate: 'asc' as const },
       }),

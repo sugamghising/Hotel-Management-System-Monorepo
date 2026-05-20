@@ -256,12 +256,11 @@ export class RatePlansRepository {
   async deleteOverride(ratePlanId: string, date: Date): Promise<void> {
     const normalizedDate = new Date(date);
     normalizedDate.setHours(0, 0, 0, 0);
-    await prisma.rateOverride.delete({
+    // Use deleteMany to make the operation idempotent — deleting a non-existent row should be a no-op
+    await prisma.rateOverride.deleteMany({
       where: {
-        uq_rateoverride_plan_date: {
-          ratePlanId,
-          date: normalizedDate,
-        },
+        ratePlanId,
+        date: normalizedDate,
       },
     });
   }
