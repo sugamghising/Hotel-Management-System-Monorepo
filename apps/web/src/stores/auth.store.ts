@@ -27,6 +27,7 @@ interface AuthState {
   organizationId: string | null;
   organizationCode: string | null;
   isAuthenticated: boolean;
+  refreshToken: string | null;
 
   // Actions
   setAuth: (
@@ -34,6 +35,7 @@ interface AuthState {
     orgId: string,
     orgCode: string,
     accessToken: string,
+    refreshToken: string,
   ) => void;
   setActiveHotel: (hotel: ActiveHotel) => void;
   updateAccessToken: (token: string) => void;
@@ -64,14 +66,16 @@ export const useAuthStore = create<AuthState>()(
       organizationId: null,
       organizationCode: null,
       isAuthenticated: false,
+      refreshToken: null,
 
-      setAuth: (user, orgId, orgCode, accessToken) => {
+      setAuth: (user, orgId, orgCode, accessToken, refreshToken) => {
         setAccessToken(accessToken);
         set({
           user,
           organizationId: orgId,
           organizationCode: orgCode,
           isAuthenticated: true,
+          refreshToken,
         });
       },
 
@@ -91,6 +95,7 @@ export const useAuthStore = create<AuthState>()(
           organizationId: null,
           organizationCode: null,
           isAuthenticated: false,
+          refreshToken: null,
         });
       },
 
@@ -123,6 +128,7 @@ export const useAuthStore = create<AuthState>()(
         organizationId: state.organizationId,
         organizationCode: state.organizationCode,
         activeHotel: state.activeHotel,
+        refreshToken: state.refreshToken, // Persist refresh token to allow silent refresh on reload
         // Don't persist user.permissions or isAuthenticated
         // Those get re-hydrated from the API on refresh
       }),

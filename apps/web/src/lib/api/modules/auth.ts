@@ -17,8 +17,6 @@ export interface LoginResponse {
     email: string;
     firstName: string;
     lastName: string;
-    isSuperAdmin: boolean;
-    organizationId: string;
     status: string;
     mfaEnabled: boolean;
   };
@@ -29,7 +27,6 @@ export interface LoginResponse {
   };
   mfaRequired?: boolean;
   mfaToken?: string;
-  organizationId: string;
 }
 
 export const authApi = {
@@ -49,7 +46,8 @@ export const authApi = {
 
   me: async () => {
     const { data } = await apiClient.get("/auth/me");
-    return data.data.user;
+    // The backend wraps the user in an extra data object for this specific endpoint
+    return data.data.data?.user ?? data.data.user;
   },
 
   forgotPassword: async (

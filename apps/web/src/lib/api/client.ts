@@ -7,6 +7,7 @@ import {
   getAccessToken,
   setAccessToken,
   clearAccessToken,
+  useAuthStore,
 } from "@/stores/auth.store";
 
 const BASE_URL =
@@ -78,10 +79,12 @@ apiClient.interceptors.response.use(
     isRefreshing = true;
 
     try {
-      // Refresh token is in httpOnly cookie — just call the endpoint
+      // Refresh token is stored in Zustand state (persisted to localStorage)
+      const { refreshToken } = useAuthStore.getState();
+
       const { data } = await axios.post(
         `${BASE_URL}/auth/refresh`,
-        {},
+        { refreshToken },
         { withCredentials: true },
       );
       const newToken: string = data.data.tokens.accessToken;
