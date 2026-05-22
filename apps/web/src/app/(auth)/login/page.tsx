@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { useAuthStore } from "@/stores/auth.store";
+import { setTokens, useAuthStore } from "@/stores/auth.store";
 import { authApi } from "@/lib/api/modules/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,19 @@ const parseJwt = (token: string) => {
   }
 };
 
+/** Safely decode a JWT payload (no signature verification — client-side only) */
+const decodeJwt = (token: string): Record<string, any> | null => {
+  try {
+    const part = token.split(".")[1];
+    if (!part) return null;
+    // Handle base64url encoding
+    const base64 = part.replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(base64));
+  } catch {
+    return null;
+  }
+};
+
 export default function LoginPage() {
   const router = useRouter();
   const { setAuth } = useAuthStore();
@@ -47,20 +60,29 @@ export default function LoginPage() {
       const result = await authApi.login(values);
 
       if (result.mfaRequired) {
-        // TODO: navigate to MFA page
         toast.info("MFA verification required");
+        // TODO: redirect to /login/mfa with mfaToken
         return;
       }
 
       // Extract organizationId and permissions from Access Token
-      const decoded = parseJwt(result.tokens.accessToken);
+      const decoded = decodeJwt(result.tokens.accessToken);
+      if (!decoded) {
+        throw new Error("Invalid access token");
+      }
       const orgId = decoded?.org?.id;
-      const tokenPermissions = decoded?.session?.permissions ?? [];
-      const tokenIsSuperAdmin = decoded?.user?.isSuperAdmin ?? false;
+      const tokenIsSuperAdmin: boolean = decoded.user?.isSuperAdmin ?? false;
+      const tokenPermissions: string[] = decoded?.session?.permissions ?? [];
 
       if (!orgId) {
         throw new Error("Could not extract organization ID from token");
       }
+
+      // Store both tokens in memory
+      setTokens(result.tokens.accessToken, result.tokens.refreshToken);
+
+      // Set the refresh token cookie for Next.js middleware
+      document.cookie = `hms_refresh=${encodeURIComponent(result.tokens.refreshToken)}; path=/; SameSite=Lax`;
 
       // Build user object from response
       const user = {
@@ -68,8 +90,8 @@ export default function LoginPage() {
         email: result.user.email,
         firstName: result.user.firstName,
         lastName: result.user.lastName,
-        permissions: tokenPermissions,
         isSuperAdmin: tokenIsSuperAdmin,
+        permissions: tokenPermissions,
         organizationId: orgId,
       };
 
@@ -81,18 +103,12 @@ export default function LoginPage() {
         result.tokens.refreshToken,
       );
 
-      // Set the refresh token cookie for Next.js middleware
-      document.cookie = `hms_refresh=${result.tokens.refreshToken}; path=/; samesite=lax;`;
-
-      // Fetch full user profile (optional, but good for completeness)
-      try {
-        await authApi.me();
-      } catch (e) {
-        console.error("Failed to fetch user profile", e);
-      }
-
       toast.success(`Welcome back, ${result.user.firstName}!`);
-      router.replace("/hotels");
+
+      // Use window.location.replace instead of router.replace to force
+      // a full page reload. This ensures the middleware reads the
+      // newly set cookie on the server side for the first request.
+      window.location.replace("/hotels");
     } catch (err: any) {
       const msg =
         err?.response?.data?.message ??

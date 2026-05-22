@@ -5,9 +5,10 @@ import axios, {
 } from "axios";
 import {
   getAccessToken,
-  setAccessToken,
-  clearAccessToken,
+  setTokens,
+  clearTokens,
   useAuthStore,
+  getRefreshToken,
 } from "@/stores/auth.store";
 
 const BASE_URL =
@@ -80,25 +81,29 @@ apiClient.interceptors.response.use(
 
     try {
       // Refresh token is stored in Zustand state (persisted to localStorage)
-      const { refreshToken } = useAuthStore.getState();
+      const currentRefreshToken = getRefreshToken();
+
+      if (!currentRefreshToken) {
+        throw new Error("No refresh token available");
+      }
 
       const { data } = await axios.post(
         `${BASE_URL}/auth/refresh`,
-        { refreshToken },
-        { withCredentials: true },
+        { refreshToken: currentRefreshToken },
+        { headers: { "Content-Type": "application/json" } },
       );
-      const newToken: string = data.data.tokens.accessToken;
+      const { accessToken, refreshToken } = data.data.tokens;
 
-      setAccessToken(newToken);
-      flushQueue(newToken);
+      setTokens(accessToken, refreshToken);
+      flushQueue(accessToken);
 
-      original.headers.Authorization = `Bearer ${newToken}`;
+      original.headers.Authorization = `Bearer ${accessToken}`;
       return apiClient(original);
     } catch (refreshError) {
       rejectQueue(refreshError);
-      clearAccessToken();
+      clearTokens();
 
-      // Redirect to login — only in browser
+      // Force Redirect to login
       if (typeof window !== "undefined") {
         window.location.href = "/login";
       }

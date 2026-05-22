@@ -12,13 +12,13 @@ export function middleware(request: NextRequest) {
 
   // Check for refresh token cookie as proxy for "logged in"
   // The access token is in memory only — cookie is our persistence signal
-  const refreshToken = request.cookies.get("hms_refresh")?.value;
+  const sessionCookie = request.cookies.get("hms_refresh")?.value;
 
   const isPublic = PUBLIC_ROUTES.some((r) => pathname.startsWith(r));
   const isAuthRoute = AUTH_ROUTES.some((r) => pathname.startsWith(r));
 
   // Not logged in and trying to access protected route
-  if (!isPublic && !refreshToken) {
+  if (!isPublic && !sessionCookie) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("from", pathname);
@@ -26,7 +26,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Already logged in and trying to access auth pages
-  if (isAuthRoute && refreshToken) {
+  if (isAuthRoute && sessionCookie) {
     return NextResponse.redirect(new URL("/hotels", request.url));
   }
 

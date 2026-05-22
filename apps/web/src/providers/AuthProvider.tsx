@@ -5,44 +5,41 @@ import { useAuthStore } from "@/stores/auth.store";
 import { authApi } from "@/lib/api/modules/auth";
 import { getAccessToken } from "@/stores/auth.store";
 
+/** Decode JWT payload without verifying signature */
+const decodeJwt = (token: string): Record<string, any> | null => {
+  try {
+    const part = token.split(".")[1];
+    if (!part) return null;
+    return JSON.parse(atob(part.replace(/-/g, "+").replace(/_/g, "/")));
+  } catch {
+    return null;
+  }
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, setAuth, organizationId, logout } = useAuthStore();
+  const { isAuthenticated, setAuth, organizationId, organizationCode, logout } =
+    useAuthStore();
   const initialized = useRef(false);
 
   useEffect(() => {
-    // On mount, if we have no access token but localStorage says authenticated,
-    // try to restore the session by calling /auth/me (which will trigger
-    // the refresh interceptor if needed)
-    if (!initialized.current && isAuthenticated && !getAccessToken()) {
-      initialized.current = true;
-      authApi
-        .me()
-        .then((user) => {
-          // Session restored successfully — user is already in store,
-          // just update the permissions from the latest /me response
-          useAuthStore.getState().setAuth(
-            {
-              id: user.id,
-              email: user.email,
-              firstName: user.firstName,
-              lastName: user.lastName,
-              isSuperAdmin: user.isSuperAdmin,
-              permissions: user.permissions ?? [],
-              organizationId: user.organizationId ?? organizationId ?? "",
-            },
-            user.organizationId ?? organizationId ?? "",
-            useAuthStore.getState().organizationCode ?? "",
-            getAccessToken() ?? "",
-          );
-        })
-        .catch(() => {
-          // Refresh failed → force logout
-          logout();
-        });
-    } else {
-      initialized.current = true;
+    if (initialized.current) return;
+    initialized.current = true;
+
+    // If localStorage says we're authenticated but we have no access token in memory
+    // (page reload case), we can't do anything without a refresh token.
+    // The refresh token is also in memory only — so on hard reload we must
+    // redirect to login. This is the correct secure behavior.
+    //
+    // The session cookie keeps the middleware from blocking protected routes
+    // but the API calls will 401 until the user logs in again.
+    //
+    // For production, consider storing the refresh token in an httpOnly cookie
+    // (set by the backend) so it survives page reloads transparently.
+    if (isAuthenticated && !getAccessToken()) {
+      // Tokens lost on reload — clear session and redirect to login
+      logout();
     }
-  }, []); // run once on mount
+  }, []);
 
   return <>{children}</>;
 }

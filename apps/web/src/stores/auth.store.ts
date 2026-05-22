@@ -38,7 +38,7 @@ interface AuthState {
     refreshToken: string,
   ) => void;
   setActiveHotel: (hotel: ActiveHotel) => void;
-  updateAccessToken: (token: string) => void;
+  updateTokens: (accessToken: string, refreshToken: string) => void;
   logout: () => void;
 
   // Permission check
@@ -49,13 +49,41 @@ interface AuthState {
 
 // In-memory access token — never persisted to localStorage
 let _accessToken: string | null = null;
+let _refreshToken: string | null = null;
 
 export const getAccessToken = () => _accessToken;
-export const setAccessToken = (token: string) => {
-  _accessToken = token;
+export const getRefreshToken = () => _refreshToken;
+
+export const setTokens = (accessToken: string, refreshToken: string) => {
+  _accessToken = accessToken;
+  _refreshToken = refreshToken;
 };
-export const clearAccessToken = () => {
+
+export const clearTokens = () => {
   _accessToken = null;
+  _refreshToken = null;
+};
+// export const setAccessToken = (token: string) => {
+//   _accessToken = token;
+// };
+// export const clearAccessToken = () => {
+//   _accessToken = null;
+// };
+
+// Custom storage to avoid SSR localStorage errors
+const safeStorage = {
+  getItem: (name: string) => {
+    if (typeof window === "undefined") return null;
+    return localStorage.getItem(name);
+  },
+  setItem: (name: string, value: string) => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem(name, value);
+  },
+  removeItem: (name: string) => {
+    if (typeof window === "undefined") return;
+    localStorage.removeItem(name);
+  },
 };
 
 export const useAuthStore = create<AuthState>()(
@@ -69,7 +97,7 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: null,
 
       setAuth: (user, orgId, orgCode, accessToken, refreshToken) => {
-        setAccessToken(accessToken);
+        setTokens(accessToken, refreshToken);
         set({
           user,
           organizationId: orgId,
@@ -83,12 +111,15 @@ export const useAuthStore = create<AuthState>()(
         set({ activeHotel: hotel });
       },
 
-      updateAccessToken: (token) => {
-        setAccessToken(token);
+      updateTokens: (accessToken, refreshToken) => {
+        setTokens(accessToken, refreshToken);
       },
 
       logout: () => {
-        clearAccessToken();
+        clearTokens();
+        if (typeof document !== "undefined") {
+          document.cookie = "hms_refresh=; path=/; max-age=0";
+        }
         set({
           user: null,
           activeHotel: null,
@@ -122,15 +153,23 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "hms-auth",
-      storage: createJSONStorage(() => localStorage),
-      // Only persist non-sensitive data
+      storage: createJSONStorage(() => safeStorage),
       partialize: (state) => ({
         organizationId: state.organizationId,
         organizationCode: state.organizationCode,
         activeHotel: state.activeHotel,
-        refreshToken: state.refreshToken, // Persist refresh token to allow silent refresh on reload
-        // Don't persist user.permissions or isAuthenticated
-        // Those get re-hydrated from the API on refresh
+        refreshToken: state.refreshToken,
+        user: state.user
+          ? {
+              id: state.user.id,
+              email: state.user.email,
+              firstName: state.user.firstName,
+              lastName: state.user.lastName,
+              isSuperAdmin: state.user.isSuperAdmin,
+              organizationId: state.user.organizationId,
+              permissions: [],
+            }
+          : null,
       }),
     },
   ),
