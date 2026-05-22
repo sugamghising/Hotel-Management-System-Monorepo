@@ -7,7 +7,7 @@ const PUBLIC_ROUTES = ["/login", "/forgot-password", "/reset-password"];
 // Routes that should redirect to dashboard if already logged in
 const AUTH_ROUTES = ["/login", "/forgot-password"];
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Check for refresh token cookie as proxy for "logged in"
