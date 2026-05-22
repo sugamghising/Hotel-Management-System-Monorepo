@@ -1,7 +1,7 @@
-import jwt from 'jsonwebtoken';
-import QRCode from 'qrcode';
-import speakeasy from 'speakeasy';
-import { config } from '../../config';
+import jwt from "jsonwebtoken";
+import QRCode from "qrcode";
+import speakeasy from "speakeasy";
+import { config } from "../../config";
 import {
   ConflictError,
   ForbiddenError,
@@ -9,17 +9,20 @@ import {
   NotFoundError,
   UnauthorizedError,
   logger,
-} from '../../core';
+} from "../../core";
 import {
   generateRandomToken,
   hashPassword,
   hashToken,
   verifyPassword,
-} from '../../core/utils/crypto';
-import { emailProvider } from '../communications/providers/email.provider';
-import { type OrganizationService, organizationService } from '../organizations';
-import { type AuthRepository, authRepository } from './auth.repository';
-import type { LoginInput } from './auth.schema';
+} from "../../core/utils/crypto";
+import { emailProvider } from "../communications/providers/email.provider";
+import {
+  type OrganizationService,
+  organizationService,
+} from "../organizations";
+import { type AuthRepository, authRepository } from "./auth.repository";
+import type { LoginInput } from "./auth.schema";
 import type {
   AccessTokenPayload,
   ChangePasswordInput,
@@ -32,9 +35,9 @@ import type {
   TokenPair,
   User,
   UserWithRoles,
-} from './auth.types';
-import { buildPasswordResetEmailTemplate } from './password-reset-email.template';
-import { parseCompositeRefreshToken } from './refresh-token.util';
+} from "./auth.types";
+import { buildPasswordResetEmailTemplate } from "./password-reset-email.template";
+import { parseCompositeRefreshToken } from "./refresh-token.util";
 
 export class AuthService {
   private authRepo: AuthRepository;
@@ -48,7 +51,7 @@ export class AuthService {
    */
   constructor(
     authRepo: AuthRepository = authRepository,
-    orgService: OrganizationService = organizationService
+    orgService: OrganizationService = organizationService,
   ) {
     this.authRepo = authRepo;
     this.orgService = orgService;
@@ -74,55 +77,64 @@ export class AuthService {
     //Find Organizations
     const org = await this.orgService.findByCode(input.organizationCode);
     if (!org || org.deletedAt) {
-      logger.warn(`Login attempt with invalid organization code: ${input.organizationCode}`);
-      throw new UnauthorizedError('Organization not found');
+      logger.warn(
+        `Login attempt with invalid organization code: ${input.organizationCode}`,
+      );
+      throw new UnauthorizedError("Organization not found");
     }
 
-    if (org.subscriptionStatus !== 'ACTIVE') {
-      logger.warn(`Login attempt with inactive subscription: ${input.organizationCode}`);
-      throw new ForbiddenError('Organization subscription is not active');
+    if (org.subscriptionStatus !== "ACTIVE") {
+      logger.warn(
+        `Login attempt with inactive subscription: ${input.organizationCode}`,
+      );
+      throw new ForbiddenError("Organization subscription is not active");
     }
 
     //Find user
     const user = await this.authRepo.findUserByEmail(input.email, org.id);
     if (!user) {
       logger.warn(
-        `Login attempt with invalid email: ${input.email} for organization: ${input.organizationCode}`
+        `Login attempt with invalid email: ${input.email} for organization: ${input.organizationCode}`,
       );
-      await hashPassword('dummy'); // Dummy hash to mitigate timing attacks
-      throw new UnauthorizedError('Invalid Credentials.');
+      await hashPassword("dummy"); // Dummy hash to mitigate timing attacks
+      throw new UnauthorizedError("Invalid Credentials.");
     }
 
     // 3. Check account status
-    if (user.status === 'SUSPENDED') {
+    if (user.status === "SUSPENDED") {
       logger.warn(
-        `Login attempt for suspended account: ${input.email} in organization: ${input.organizationCode}`
+        `Login attempt for suspended account: ${input.email} in organization: ${input.organizationCode}`,
       );
-      throw new ForbiddenError('Account is suspended');
+      throw new ForbiddenError("Account is suspended");
     }
 
-    if (user.status === 'INACTIVE') {
+    if (user.status === "INACTIVE") {
       logger.warn(
-        `Login attempt for inactive account: ${input.email} in organization: ${input.organizationCode}`
+        `Login attempt for inactive account: ${input.email} in organization: ${input.organizationCode}`,
       );
-      throw new ForbiddenError('Account is inactive');
+      throw new ForbiddenError("Account is inactive");
     }
 
     if (user.lockedUntil && user.lockedUntil > new Date()) {
       logger.warn(
-        `Login attempt for locked account: ${input.email} in organization: ${input.organizationCode}. Locked until: ${user.lockedUntil.toISOString()}`
+        `Login attempt for locked account: ${input.email} in organization: ${input.organizationCode}. Locked until: ${user.lockedUntil.toISOString()}`,
       );
-      throw new ForbiddenError(`Account is locked until ${user.lockedUntil.toISOString()}`);
+      throw new ForbiddenError(
+        `Account is locked until ${user.lockedUntil.toISOString()}`,
+      );
     }
 
     // 4. Verify password
-    const validPassword = await verifyPassword(input.password, user.passwordHash);
+    const validPassword = await verifyPassword(
+      input.password,
+      user.passwordHash,
+    );
     if (!validPassword) {
       logger.warn(
-        `Invalid password attempt for email: ${input.email} in organization: ${input.organizationCode}`
+        `Invalid password attempt for email: ${input.email} in organization: ${input.organizationCode}`,
       );
       await this.handleFailedLogin(user);
-      throw new UnauthorizedError('Invalid credentials');
+      throw new UnauthorizedError("Invalid credentials");
     }
 
     // 5. Check MFA
@@ -136,22 +148,24 @@ export class AuthService {
       }
 
       if (!user.mfaSecret) {
-        logger.error(`MFA enabled but secret not configured for user: ${user.id}`);
-        throw new InternalServerError('MFA secret not configured');
+        logger.error(
+          `MFA enabled but secret not configured for user: ${user.id}`,
+        );
+        throw new InternalServerError("MFA secret not configured");
       }
 
       const verified = speakeasy.totp.verify({
         secret: user.mfaSecret,
-        encoding: 'base32',
+        encoding: "base32",
         token: input.mfaCode,
         window: 1,
       });
 
       if (!verified) {
         logger.warn(
-          `Invalid MFA code attempt for email: ${input.email} in organization: ${input.organizationCode}`
+          `Invalid MFA code attempt for email: ${input.email} in organization: ${input.organizationCode}`,
         );
-        throw new UnauthorizedError('Invalid MFA code');
+        throw new UnauthorizedError("Invalid MFA code");
       }
     }
 
@@ -164,7 +178,7 @@ export class AuthService {
       ipAddress,
       userAgent,
       input.deviceFingerprint,
-      input.deviceName
+      input.deviceName,
     );
 
     await this.authRepo.recordSuccessfulLogin(user.id, ipAddress);
@@ -196,19 +210,21 @@ export class AuthService {
     //Validate organization existence
     const org = await this.orgService.findById(input.organizationId);
 
-    const limitCheck = await this.orgService.validateLimits(org.id, 'user');
+    const limitCheck = await this.orgService.validateLimits(org.id, "user");
     if (!limitCheck.valid) {
       logger.warn(
-        `Registration attempt failed due to organization limits: ${input.organizationId}`
+        `Registration attempt failed due to organization limits: ${input.organizationId}`,
       );
-      throw new ForbiddenError('Organization user limit reached. Please contact support.');
+      throw new ForbiddenError(
+        "Organization user limit reached. Please contact support.",
+      );
     }
 
     //check email uniqueness
     const existing = await this.authRepo.findUserByEmail(input.email, org.id);
     if (existing) {
       logger.warn(`Email already exists in the organiation: ${input.email}`);
-      throw new ConflictError('Email already Exists.');
+      throw new ConflictError("Email already Exists.");
     }
 
     //Hash Password
@@ -227,14 +243,14 @@ export class AuthService {
       department: input.department || null,
       jobTitle: input.jobTitle || null,
       employmentType: input.employmentType || null,
-      status: 'PENDING_VERIFICATION',
+      status: "PENDING_VERIFICATION",
       emailVerified: false,
       phoneVerified: false,
       mfaEnabled: false,
       failedLoginAttempts: 0,
       passwordChangedAt: new Date(),
-      languageCode: 'en',
-      timezone: 'UTC',
+      languageCode: "en",
+      timezone: "UTC",
       preferences: {},
       isSuperAdmin: false,
       version: 1,
@@ -265,25 +281,31 @@ export class AuthService {
    * @returns Newly issued access and refresh tokens.
    * @throws {UnauthorizedError} Thrown for malformed, invalid, missing, expired, or mismatched refresh tokens.
    */
-  async refreshToken(refreshToken: string, deviceFingerprint?: string): Promise<TokenPair> {
+  async refreshToken(
+    refreshToken: string,
+    deviceFingerprint?: string,
+  ): Promise<TokenPair> {
     const parsedToken = parseCompositeRefreshToken(refreshToken);
     if (!parsedToken) {
-      logger.warn('Invalid refresh token format.');
-      throw new UnauthorizedError('Invalid refresh token format.');
+      logger.warn("Invalid refresh token format.");
+      throw new UnauthorizedError("Invalid refresh token format.");
     }
     const { jwtPart, opaquePart } = parsedToken;
 
     let payload: RefreshTokenPayload;
     try {
-      payload = jwt.verify(jwtPart, config.jwt.refreshSecret) as RefreshTokenPayload;
+      payload = jwt.verify(
+        jwtPart,
+        config.jwt.refreshSecret,
+      ) as RefreshTokenPayload;
     } catch (error) {
-      logger.warn('Invalid refresh token JWT', { error });
-      throw new UnauthorizedError('Invalid Refresh token');
+      logger.warn("Invalid refresh token JWT", { error });
+      throw new UnauthorizedError("Invalid Refresh token");
     }
 
-    if (payload.type !== 'refresh') {
+    if (payload.type !== "refresh") {
       logger.warn(`Invalid token type: ${payload.type}`);
-      throw new UnauthorizedError('Invalid token type');
+      throw new UnauthorizedError("Invalid token type");
     }
 
     //find in database
@@ -291,32 +313,43 @@ export class AuthService {
     const storedToken = await this.authRepo.findRefreshTokenByHash(tokenHash);
 
     if (!storedToken) {
-      logger.warn('Refresh token not found in database', {
+      logger.warn("Refresh token not found in database", {
         userId: payload.sub,
       });
-      throw new UnauthorizedError('Refresh Token not found or Expired.');
+      throw new UnauthorizedError("Refresh Token not found or Expired.");
     }
 
     // Security: Check device fingerprint if provided
-    if (deviceFingerprint && storedToken.deviceFingerprint !== deviceFingerprint) {
+    if (
+      deviceFingerprint &&
+      storedToken.deviceFingerprint !== deviceFingerprint
+    ) {
       // Potential token theft - revoke all tokens
-      logger.error(`Security violation: Device fingerprint mismatch for user ${payload.sub}`);
+      logger.error(
+        `Security violation: Device fingerprint mismatch for user ${payload.sub}`,
+      );
       await this.authRepo.revokeAllUserTokens(payload.sub);
-      throw new UnauthorizedError('Security violation detected. Please login again.');
+      throw new UnauthorizedError(
+        "Security violation detected. Please login again.",
+      );
     }
 
     // Get user and org
     const user = await this.authRepo.findUserById(payload.sub);
     if (!user || user.deletedAt) {
-      logger.warn(`User not found or deleted during token refresh: ${payload.sub}`);
-      throw new UnauthorizedError('User not found');
+      logger.warn(
+        `User not found or deleted during token refresh: ${payload.sub}`,
+      );
+      throw new UnauthorizedError("User not found");
     }
 
     // Generate new pair
     const org = await this.orgService.findById(payload.orgId);
     if (!org) {
-      logger.warn(`Organization not found during token refresh: ${payload.orgId}`);
-      throw new UnauthorizedError('Organization not found');
+      logger.warn(
+        `Organization not found during token refresh: ${payload.orgId}`,
+      );
+      throw new UnauthorizedError("Organization not found");
     }
 
     const tokens = await this.generateTokenPair(
@@ -326,7 +359,7 @@ export class AuthService {
       org.subscriptionTier,
       undefined,
       undefined,
-      deviceFingerprint
+      deviceFingerprint,
     );
 
     // Revoke old token
@@ -388,18 +421,24 @@ export class AuthService {
    * @throws {NotFoundError} Thrown when the user cannot be found.
    * @throws {UnauthorizedError} Thrown when the current password is incorrect.
    */
-  async changePassword(userId: string, input: ChangePasswordInput): Promise<void> {
+  async changePassword(
+    userId: string,
+    input: ChangePasswordInput,
+  ): Promise<void> {
     const user = await this.authRepo.findUserById(userId);
 
     if (!user) {
       logger.error(`User not found when changing password: ${userId}`);
-      throw new NotFoundError('User Not Found');
+      throw new NotFoundError("User Not Found");
     }
 
-    const valid = await verifyPassword(input.currentPassword, user.passwordHash);
+    const valid = await verifyPassword(
+      input.currentPassword,
+      user.passwordHash,
+    );
     if (!valid) {
       logger.warn(`Incorrect current password attempt for user: ${userId}`);
-      throw new UnauthorizedError('Current Password is incorrect');
+      throw new UnauthorizedError("Current Password is incorrect");
     }
 
     const newHash = await hashPassword(input.newPassword);
@@ -458,8 +497,9 @@ export class AuthService {
         ...(config.resend.fromEmail ? { from: config.resend.fromEmail } : {}),
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error('Password reset email delivery failed', {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      logger.error("Password reset email delivery failed", {
         userId: user.id,
         email: user.email,
         organizationCode,
@@ -488,8 +528,8 @@ export class AuthService {
     //Find user with valid token
     const user = await this.authRepo.findUserByResetToken(tokenHash);
     if (!user) {
-      logger.warn('Invalid or expired password reset token');
-      throw new NotFoundError('User not Found');
+      logger.warn("Invalid or expired password reset token");
+      throw new NotFoundError("User not Found");
     }
 
     const newHash = await hashPassword(input.newPassword);
@@ -520,12 +560,14 @@ export class AuthService {
     const user = await this.authRepo.findUserById(userId);
     if (!user) {
       logger.error(`User not found when setting up MFA: ${userId}`);
-      throw new NotFoundError('User not Found.');
+      throw new NotFoundError("User not Found.");
     }
 
     if (user.mfaEnabled) {
-      logger.warn(`MFA setup attempted for user with MFA already enabled: ${userId}`);
-      throw new ConflictError('MFA is already enabled.');
+      logger.warn(
+        `MFA setup attempted for user with MFA already enabled: ${userId}`,
+      );
+      throw new ConflictError("MFA is already enabled.");
     }
 
     const secret = speakeasy.generateSecret({
@@ -535,11 +577,13 @@ export class AuthService {
 
     if (!secret.otpauth_url) {
       logger.error(`Failed to generate MFA secret for user: ${userId}`);
-      throw new InternalServerError('Failed to generate MFA secret');
+      throw new InternalServerError("Failed to generate MFA secret");
     }
 
     const qrCodeUrl = await QRCode.toDataURL(secret.otpauth_url);
-    const backupCodes = Array.from({ length: 10 }, () => generateRandomToken(4).toUpperCase());
+    const backupCodes = Array.from({ length: 10 }, () =>
+      generateRandomToken(4).toUpperCase(),
+    );
 
     // Store secret temporarily (verify first before enabling)
     // In production: store in temporary cache or separate field
@@ -560,20 +604,26 @@ export class AuthService {
    * @returns Resolves when MFA is enabled and backup codes are stored.
    * @throws {UnauthorizedError} Thrown when the provided TOTP code is invalid.
    */
-  async verifyAndEnableMfa(userId: string, code: string, secret: string): Promise<void> {
+  async verifyAndEnableMfa(
+    userId: string,
+    code: string,
+    secret: string,
+  ): Promise<void> {
     const verified = speakeasy.totp.verify({
       secret,
-      encoding: 'base32',
+      encoding: "base32",
       token: code,
       window: 1,
     });
 
     if (!verified) {
       logger.warn(`Invalid MFA code during verification for user: ${userId}`);
-      throw new UnauthorizedError('Invalid MFA code');
+      throw new UnauthorizedError("Invalid MFA code");
     }
 
-    const backupCodes = Array.from({ length: 10 }, () => generateRandomToken(4).toUpperCase());
+    const backupCodes = Array.from({ length: 10 }, () =>
+      generateRandomToken(4).toUpperCase(),
+    );
 
     await this.authRepo.enableMfa(userId, secret, backupCodes);
   }
@@ -591,13 +641,13 @@ export class AuthService {
     const user = await this.authRepo.findUserById(userId);
     if (!user) {
       logger.error(`User not found when disabling MFA: ${userId}`);
-      throw new NotFoundError('User');
+      throw new NotFoundError("User");
     }
 
     const valid = await verifyPassword(password, user.passwordHash);
     if (!valid) {
       logger.warn(`Incorrect password when disabling MFA for user: ${userId}`);
-      throw new UnauthorizedError('Password is incorrect');
+      throw new UnauthorizedError("Password is incorrect");
     }
 
     await this.authRepo.disableMfa(userId);
@@ -618,7 +668,7 @@ export class AuthService {
     const user = await this.authRepo.findUserWithRoles(userId);
     if (!user) {
       logger.error(`User not found when getting current user: ${userId}`);
-      throw new NotFoundError('User');
+      throw new NotFoundError("User");
     }
 
     return this.mapToDetailedUser(user);
@@ -654,7 +704,7 @@ export class AuthService {
   private generateMfaTempToken(userId: string, orgId: string): string {
     const payload: MfaTempPayload = {
       sub: userId,
-      type: 'mfa_pending',
+      type: "mfa_pending",
       orgId,
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 300, // 5 min
@@ -672,7 +722,7 @@ export class AuthService {
    */
   private buildPasswordResetLink(token: string): string {
     const resetUrl = new URL(config.auth.passwordResetUrlBase);
-    resetUrl.searchParams.set('token', token);
+    resetUrl.searchParams.set("token", token);
     return resetUrl.toString();
   }
 
@@ -719,7 +769,7 @@ export class AuthService {
     ipAddress?: string,
     userAgent?: string,
     deviceFingerprint?: string,
-    deviceName?: string
+    deviceName?: string,
   ): Promise<TokenPair> {
     const sessionId = `sess_${generateRandomToken(16)}`;
 
@@ -729,8 +779,8 @@ export class AuthService {
     // Access token (15 min)
     const accessPayload: AccessTokenPayload = {
       sub: user.id,
-      iss: 'hms-api',
-      aud: 'hms-client',
+      iss: "hms-api",
+      aud: "hms-client",
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 900,
       jti: `tok_${generateRandomToken(16)}`,
@@ -749,7 +799,7 @@ export class AuthService {
       },
       session: {
         id: sessionId,
-        type: 'access',
+        type: "access",
         mfaVerified: user.mfaEnabled, // If MFA enabled and passed
         permissions,
       },
@@ -778,12 +828,12 @@ export class AuthService {
 
     const refreshPayload: RefreshTokenPayload = {
       sub: user.id,
-      iss: 'hms-api',
-      aud: 'hms-client',
+      iss: "hms-api",
+      aud: "hms-client",
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60,
       jti: refreshTokenId,
-      type: 'refresh',
+      type: "refresh",
       orgId,
       sessionId,
       ...(deviceFingerprint && { deviceFingerprint }),
