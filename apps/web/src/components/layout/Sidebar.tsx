@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthStore } from "@/stores/auth.store";
 import { buildNav, buildSettingsNav } from "@/config/navigation";
 import { cn } from "@/lib/utils";
@@ -40,6 +40,11 @@ export function Sidebar() {
   } = useAuthStore();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const navItems = buildNav(organizationId ?? "", activeHotel?.id ?? "");
   const settingsItems = buildSettingsNav(organizationId ?? "");
@@ -56,6 +61,10 @@ export function Sidebar() {
 
   const isActive = (href: string) =>
     pathname === href || (href !== "/" && pathname.startsWith(href));
+
+  if (!mounted) {
+    return <aside className={cn("flex flex-col shrink-0 h-screen sticky top-0", "bg-sidebar-bg border-r border-sidebar-border", collapsed ? "w-16" : "w-64")} />;
+  }
 
   return (
     <aside
