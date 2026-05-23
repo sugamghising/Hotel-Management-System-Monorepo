@@ -128,7 +128,7 @@ export interface DashboardStats {
   }>;
 }
 
-export const reservationApi = {
+export const reservationsApi = {
   list: async (
     orgId: string,
     hotelId: string,

@@ -3,5 +3,5 @@ export { apiClient } from "./client";
 export { authApi } from "./modules/auth";
 export { hotelsApi } from "./modules/hotels";
 export { guestsApi } from "./modules/guests";
-export { reservationApi } from "./modules/reservations";
+export { reservationsApi } from "./modules/reservations";
 export { roomsApi } from "./modules/rooms";
