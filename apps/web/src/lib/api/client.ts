@@ -6,7 +6,6 @@ import axios, {
 import {
   getAccessToken,
   setTokens,
-  clearTokens,
   useAuthStore,
   getRefreshToken,
 } from "@/stores/auth.store";
@@ -49,6 +48,15 @@ const flushQueue = (token: string) => {
 const rejectQueue = (err: unknown) => {
   pendingQueue.forEach(({ reject }) => reject(err));
   pendingQueue = [];
+};
+
+const handleAuthFailure = () => {
+  // Keep auth state, persisted refresh token, and middleware cookie in sync.
+  useAuthStore.getState().logout();
+
+  if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+    window.location.replace("/login");
+  }
 };
 
 apiClient.interceptors.response.use(
@@ -101,12 +109,7 @@ apiClient.interceptors.response.use(
       return apiClient(original);
     } catch (refreshError) {
       rejectQueue(refreshError);
-      clearTokens();
-
-      // Force Redirect to login
-      if (typeof window !== "undefined") {
-        window.location.href = "/login";
-      }
+      handleAuthFailure();
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;

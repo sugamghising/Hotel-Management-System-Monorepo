@@ -82,7 +82,7 @@ export default function LoginPage() {
       setTokens(result.tokens.accessToken, result.tokens.refreshToken);
 
       // Set the refresh token cookie for Next.js middleware
-      document.cookie = `hms_refresh=${encodeURIComponent(result.tokens.refreshToken)}; path=/; SameSite=Lax`;
+      document.cookie = `hms_refresh=${encodeURIComponent(result.tokens.refreshToken)}; path=/; SameSite=Lax; max-age=${7 * 24 * 60 * 60}`;
 
       // Build user object from response
       const user = {
@@ -105,9 +105,16 @@ export default function LoginPage() {
 
       toast.success(`Welcome back, ${result.user.firstName}!`);
 
-      // Use window.location.replace instead of router.replace to force
-      // a full page reload. This ensures the middleware reads the
-      // newly set cookie on the server side for the first request.
+      // Persist access token across a full reload so server middleware + first
+      // API calls see an access token. Use sessionStorage (short-lived, cleared
+      // when the tab closes) to avoid long-lived local storage of access token.
+      try {
+        sessionStorage.setItem("hms_access", result.tokens.accessToken);
+      } catch (e) {
+        // ignore sessionStorage errors
+      }
+
+      // Use full navigation so Next.js middleware sees the refresh cookie server-side
       window.location.replace("/hotels");
     } catch (err: any) {
       const msg =

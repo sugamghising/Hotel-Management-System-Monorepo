@@ -141,13 +141,16 @@ export const reservationsApi = {
       page?: number;
       limit?: number;
     },
-  ): Promise<{ reservation: ReservationListItem[]; pagination: any }> => {
+  ): Promise<{ reservations: ReservationListItem[]; pagination: any }> => {
     const { data } = await apiClient.get(
-      `/${orgId}/hotels/${hotelId}/reservations`,
+      `/organizations/${orgId}/hotels/${hotelId}/reservations`,
       { params },
     );
-    return data.data;
+    // The backend returns { data: { reservations: [...], pagination: {...} } }
+    // Normalize to the plural 'reservations' key expected by UI.
+    return data.data as { reservations: ReservationListItem[]; pagination: any };
   },
+
 
   getById: async (
     orgId: string,
@@ -155,7 +158,7 @@ export const reservationsApi = {
     id: string,
   ): Promise<Reservation> => {
     const { data } = await apiClient.get(
-      `/${orgId}/hotels/${hotelId}/reservations/${id}`,
+      `/organizations/${orgId}/hotels/${hotelId}/reservations/${id}`,
     );
     return data.data.reservation;
   },
@@ -165,7 +168,7 @@ export const reservationsApi = {
     hotelId: string,
   ): Promise<Reservation[]> => {
     const { data } = await apiClient.get(
-      `/${orgId}/hotels/${hotelId}/reservations/today/arrivals`,
+      `/organizations/${orgId}/hotels/${hotelId}/reservations/today/arrivals`,
     );
     return data.data.reservations;
   },
@@ -175,14 +178,14 @@ export const reservationsApi = {
     hotelId: string,
   ): Promise<Reservation[]> => {
     const { data } = await apiClient.get(
-      `/${orgId}/hotels/${hotelId}/reservations/today/departures`,
+      `/organizations/${orgId}/hotels/${hotelId}/reservations/today/departures`,
     );
     return data.data.reservations;
   },
 
   inHouse: async (orgId: string, hotelId: string): Promise<any[]> => {
     const { data } = await apiClient.get(
-      `/${orgId}/hotels/${hotelId}/reservations/in-house`,
+      `/organizations/${orgId}/hotels/${hotelId}/reservations/in-house`,
     );
     return data.data.guests;
   },
@@ -193,7 +196,7 @@ export const reservationsApi = {
     payload: any,
   ): Promise<Reservation> => {
     const { data } = await apiClient.post(
-      `/${orgId}/hotels/${hotelId}/reservations`,
+      `/organizations/${orgId}/hotels/${hotelId}/reservations`,
       payload,
     );
     return data.data.reservation;
@@ -206,7 +209,7 @@ export const reservationsApi = {
     payload: any,
   ): Promise<Reservation> => {
     const { data } = await apiClient.patch(
-      `/${orgId}/hotels/${hotelId}/reservations/${id}`,
+      `/organizations/${orgId}/hotels/${hotelId}/reservations/${id}`,
       payload,
     );
     return data.data.reservation;
@@ -219,7 +222,7 @@ export const reservationsApi = {
     payload: { roomId?: string; earlyCheckIn?: boolean },
   ): Promise<Reservation> => {
     const { data } = await apiClient.post(
-      `/${orgId}/hotels/${hotelId}/reservations/${id}/check-in`,
+      `/organizations/${orgId}/hotels/${hotelId}/reservations/${id}/check-in`,
       payload,
     );
     return data.data.reservation;
@@ -232,7 +235,7 @@ export const reservationsApi = {
     payload: { lateCheckOut?: boolean },
   ): Promise<Reservation> => {
     const { data } = await apiClient.post(
-      `/${orgId}/hotels/${hotelId}/reservations/${id}/check-out`,
+      `/organizations/${orgId}/hotels/${hotelId}/reservations/${id}/check-out`,
       payload,
     );
     return data.data.reservation;
@@ -245,7 +248,7 @@ export const reservationsApi = {
     payload: { reason: string; waiveFee: boolean },
   ): Promise<Reservation> => {
     const { data } = await apiClient.post(
-      `/${orgId}/hotels/${hotelId}/reservations/${id}/cancel`,
+      `/organizations/${orgId}/hotels/${hotelId}/reservations/${id}/cancel`,
       payload,
     );
     return data.data.reservation;
@@ -258,7 +261,7 @@ export const reservationsApi = {
     payload: { roomId: string; force?: boolean },
   ): Promise<Reservation> => {
     const { data } = await apiClient.post(
-      `/${orgId}/hotels/${hotelId}/reservations/${id}/assign-room`,
+      `/organizations/${orgId}/hotels/${hotelId}/reservations/${id}/assign-room`,
       payload,
     );
     return data.data.reservation;
@@ -271,7 +274,7 @@ export const reservationsApi = {
     payload: { chargeNoShowFee: boolean },
   ): Promise<Reservation> => {
     const { data } = await apiClient.post(
-      `/${orgId}/hotels/${hotelId}/reservations/${id}/no-show`,
+      `/organizations/${orgId}/hotels/${hotelId}/reservations/${id}/no-show`,
       payload,
     );
     return data.data.reservation;

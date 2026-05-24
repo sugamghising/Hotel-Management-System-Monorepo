@@ -15,7 +15,7 @@ export const RES_KEYS = {
 
 const useCtx = () => {
   const { organizationId, activeHotel } = useAuthStore();
-  return { orgId: organizationId!, hotelId: activeHotel!.id };
+  return { orgId: organizationId ?? "", hotelId: activeHotel?.id ?? "" };
 };
 
 export const useReservations = (params?: any) => {

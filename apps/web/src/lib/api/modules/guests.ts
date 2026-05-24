@@ -29,27 +29,39 @@ export const guestsApi = {
       limit?: number;
     },
   ): Promise<{ guests: Guest[]; pagination: any }> => {
-    const { data } = await apiClient.get(`/${orgId}/guests`, { params });
+    const { data } = await apiClient.get(`/organizations/${orgId}/guests`, {
+      params,
+    });
     return data.data;
   },
 
   getById: async (orgId: string, id: string): Promise<Guest> => {
-    const { data } = await apiClient.get(`/${orgId}/guests/${id}`);
+    const { data } = await apiClient.get(
+      `/organizations/${orgId}/guests/${id}`,
+    );
     return data.data.guest;
   },
 
   create: async (orgId: string, payload: any): Promise<Guest> => {
-    const { data } = await apiClient.post(`/${orgId}/guests`, payload);
+    const { data } = await apiClient.post(
+      `/organizations/${orgId}/guests`,
+      payload,
+    );
     return data.data.guest;
   },
 
   update: async (orgId: string, id: string, payload: any): Promise<Guest> => {
-    const { data } = await apiClient.patch(`/${orgId}/guests/${id}`, payload);
+    const { data } = await apiClient.patch(
+      `/organizations/${orgId}/guests/${id}`,
+      payload,
+    );
     return data.data.guest;
   },
 
   getHistory: async (orgId: string, id: string): Promise<any[]> => {
-    const { data } = await apiClient.get(`/${orgId}/guests/${id}/history`);
+    const { data } = await apiClient.get(
+      `/organizations/${orgId}/guests/${id}/history`,
+    );
     return data.data.reservations ?? [];
   },
 };

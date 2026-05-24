@@ -47,21 +47,64 @@ interface AuthState {
   hasAllPermissions: (permissions: string[]) => boolean;
 }
 
-// In-memory access token — never persisted to localStorage
+// In-memory access token — prefer memory but allow short-lived sessionStorage fallback
 let _accessToken: string | null = null;
 let _refreshToken: string | null = null;
 
-export const getAccessToken = () => _accessToken;
-export const getRefreshToken = () => _refreshToken;
+export const getAccessToken = () => {
+  // Priority 1: in-memory
+  if (_accessToken) return _accessToken;
+
+  // Priority 2: sessionStorage (survives a full page reload in the same tab)
+  try {
+    const token = typeof window !== "undefined" ? sessionStorage.getItem("hms_access") : null;
+    if (token) {
+      _accessToken = token;
+      return _accessToken;
+    }
+  } catch (e) {
+    // ignore storage errors
+  }
+
+  return null;
+};
+
+export const getRefreshToken = () => {
+  // Priority 1: Memory (Fastest)
+  if (_refreshToken) return _refreshToken;
+
+  // Priority 2: Zustand Persisted State
+  const persistedRefreshToken = useAuthStore.getState().refreshToken;
+  if (persistedRefreshToken) {
+    _refreshToken = persistedRefreshToken;
+    return persistedRefreshToken;
+  }
+
+  return null;
+};
 
 export const setTokens = (accessToken: string, refreshToken: string) => {
   _accessToken = accessToken;
   _refreshToken = refreshToken;
+  try {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("hms_access", accessToken);
+    }
+  } catch (e) {
+    // ignore storage errors
+  }
 };
 
 export const clearTokens = () => {
   _accessToken = null;
   _refreshToken = null;
+  try {
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("hms_access");
+    }
+  } catch (e) {
+    // ignore
+  }
 };
 // export const setAccessToken = (token: string) => {
 //   _accessToken = token;

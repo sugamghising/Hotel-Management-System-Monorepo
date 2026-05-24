@@ -34,7 +34,7 @@ export interface Hotel {
 
 export const hotelsApi = {
   list: async (orgId: string): Promise<{ hotels: Hotel[] }> => {
-    const { data } = await apiClient.get(`/${orgId}/hotels`);
+    const { data } = await apiClient.get(`/organizations/${orgId}/hotels`);
     return data.data;
   },
 
@@ -43,8 +43,15 @@ export const hotelsApi = {
     hotelId: string,
   ): Promise<{ hotel: Hotel }> => {
     const { data } = await apiClient.get(
-      `/${orgId}/hotels/${hotelId}?stats=true`,
+      `/organizations/${orgId}/hotels/${hotelId}?stats=true`,
     );
     return data.data;
+  },
+
+  getDashboard: async (orgId: string, hotelId: string) => {
+    const { data } = await apiClient.get(
+      `/${orgId}/hotels/${hotelId}/dashboard`,
+    );
+    return data.data.dashboard;
   },
 };

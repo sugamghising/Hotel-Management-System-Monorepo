@@ -1,5 +1,5 @@
 // apps/web/src/lib/api/modules/rooms.ts
-import { apiClient } from '../client';
+import { apiClient } from "../client";
 
 export interface Room {
   id: string;
@@ -78,20 +78,32 @@ export const roomsApi = {
   list: async (
     orgId: string,
     hotelId: string,
-    params?: any
+    params?: any,
   ): Promise<{ rooms: Room[]; pagination: any }> => {
-    const { data } = await apiClient.get(`/${orgId}/hotels/${hotelId}/rooms`, { params });
-    return data.data;
-  },
-
-  getGrid: async (orgId: string, hotelId: string): Promise<{ grid: RoomGrid }> => {
-    const { data } = await apiClient.get(`/${orgId}/hotels/${hotelId}/rooms/grid`);
-    return data.data;
-  },
-
-  getById: async (orgId: string, hotelId: string, roomId: string): Promise<{ room: Room }> => {
     const { data } = await apiClient.get(
-      `/${orgId}/hotels/${hotelId}/rooms/${roomId}?reservations=true`
+      `/organizations/${orgId}/hotels/${hotelId}/rooms`,
+      { params },
+    );
+    return data.data;
+  },
+
+  getGrid: async (
+    orgId: string,
+    hotelId: string,
+  ): Promise<{ grid: RoomGrid }> => {
+    const { data } = await apiClient.get(
+      `/organizations/${orgId}/hotels/${hotelId}/rooms/grid`,
+    );
+    return data.data;
+  },
+
+  getById: async (
+    orgId: string,
+    hotelId: string,
+    roomId: string,
+  ): Promise<{ room: Room }> => {
+    const { data } = await apiClient.get(
+      `/organizations/${orgId}/hotels/${hotelId}/rooms/${roomId}?reservations=true`,
     );
     return data.data;
   },
@@ -100,31 +112,40 @@ export const roomsApi = {
     orgId: string,
     hotelId: string,
     roomId: string,
-    status: string
+    status: string,
   ): Promise<void> => {
-    await apiClient.post(`/${orgId}/hotels/${hotelId}/rooms/${roomId}/status`, { status });
+    await apiClient.post(
+      `/organizations/${orgId}/hotels/${hotelId}/rooms/${roomId}/status`,
+      { status },
+    );
   },
 
   bulkUpdateStatus: async (
     orgId: string,
     hotelId: string,
     roomIds: string[],
-    status: string
+    status: string,
   ): Promise<void> => {
-    await apiClient.post(`/${orgId}/hotels/${hotelId}/rooms/bulk-status`, {
-      roomIds,
-      status,
-    });
+    await apiClient.post(
+      `/organizations/${orgId}/hotels/${hotelId}/rooms/bulk-status`,
+      {
+        roomIds,
+        status,
+      },
+    );
   },
 
   findAvailable: async (
     orgId: string,
     hotelId: string,
-    params: { checkIn: string; checkOut: string; roomTypeId?: string }
+    params: { checkIn: string; checkOut: string; roomTypeId?: string },
   ): Promise<{ rooms: Room[] }> => {
-    const { data } = await apiClient.get(`/${orgId}/hotels/${hotelId}/rooms/available`, {
-      params,
-    });
+    const { data } = await apiClient.get(
+      `/organizations/${orgId}/hotels/${hotelId}/rooms/available`,
+      {
+        params,
+      },
+    );
     return data.data;
   },
 };
