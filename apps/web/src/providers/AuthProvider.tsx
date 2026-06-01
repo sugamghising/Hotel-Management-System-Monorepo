@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useAuthStore } from "@/stores/auth.store";
 import { authApi } from "@/lib/api/modules/auth";
 import { getAccessToken } from "@/stores/auth.store";
@@ -19,8 +19,12 @@ const decodeJwt = (token: string): Record<string, any> | null => {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { setAuth, organizationId, organizationCode, refreshToken, logout } =
     useAuthStore();
+  const restored = useRef(false);
 
   useEffect(() => {
+    if (restored.current) return;
+    restored.current = true;
+
     const restoreSession = async () => {
       // If the app has a persisted refresh token but no in-memory access token,
       // restore the session once and repopulate in-memory auth state.

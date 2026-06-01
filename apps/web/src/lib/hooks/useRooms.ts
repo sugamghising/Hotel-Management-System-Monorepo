@@ -13,7 +13,8 @@ export const ROOM_KEYS = {
 };
 
 const useCtx = () => {
-  const { organizationId, activeHotel } = useAuthStore();
+  const organizationId = useAuthStore((s) => s.organizationId);
+  const activeHotel = useAuthStore((s) => s.activeHotel);
   return { orgId: organizationId ?? "", hotelId: activeHotel?.id ?? "" };
 };
 

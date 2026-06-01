@@ -14,7 +14,8 @@ export const RES_KEYS = {
 };
 
 const useCtx = () => {
-  const { organizationId, activeHotel } = useAuthStore();
+  const organizationId = useAuthStore((s) => s.organizationId);
+  const activeHotel = useAuthStore((s) => s.activeHotel);
   return { orgId: organizationId ?? "", hotelId: activeHotel?.id ?? "" };
 };
 
@@ -148,6 +149,9 @@ export const useMarkNoShow = () => {
       qc.invalidateQueries({ queryKey: RES_KEYS.detail(id) });
       qc.invalidateQueries({ queryKey: ["reservations", "list"] });
       toast.success("Marked as no-show");
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message ?? "Failed to mark as no-show");
     },
   });
 };
