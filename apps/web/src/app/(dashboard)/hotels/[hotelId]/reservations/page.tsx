@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { useReservations } from "@/lib/hooks/useReservations";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -26,6 +26,9 @@ export default function ReservationsPage() {
     searchParams.get("status") ?? "all",
   );
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   const canCreate = usePermission("RESERVATION.CREATE");
 
   const { data, isLoading } = useReservations(
@@ -42,7 +45,7 @@ export default function ReservationsPage() {
           { label: "Reservations" },
         ]}
         actions={
-          canCreate && (
+          mounted && canCreate ? (
             <Button
               size="sm"
               onClick={() => router.push(`/hotels/${hotelId}/reservations/new`)}
@@ -51,7 +54,7 @@ export default function ReservationsPage() {
               <Plus className="h-4 w-4" />
               New Reservation
             </Button>
-          )
+          ) : undefined
         }
       />
 

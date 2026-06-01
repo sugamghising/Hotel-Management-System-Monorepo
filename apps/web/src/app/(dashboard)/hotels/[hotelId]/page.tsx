@@ -1,9 +1,10 @@
 import { DashboardClient } from "./_components/DashboardClient";
 
 interface PageProps {
-  params: { hotelId: string };
+  params: Promise<{ hotelId: string }>;
 }
 
-export default function HotelDashboardPage({ params }: PageProps) {
-  return <DashboardClient hotelId={params.hotelId} />;
+export default async function HotelDashboardPage({ params }: PageProps) {
+  const { hotelId } = await params;
+  return <DashboardClient hotelId={hotelId} />;
 }
