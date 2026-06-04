@@ -141,21 +141,21 @@ const hkApi = {
     apiClient
       .get<{
         data: HousekeepingTaskListResponse;
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/housekeeping/tasks`, { params })
+      }>(`/organizations/${orgId}/hotels/${hotelId}/housekeeping/tasks`, { params })
       .then((r) => r.data.data),
 
   getById: (orgId: string, hotelId: string, id: string) =>
     apiClient
       .get<{
         data: { task: HousekeepingTask };
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/housekeeping/tasks/${id}`)
+      }>(`/organizations/${orgId}/hotels/${hotelId}/housekeeping/tasks/${id}`)
       .then((r) => r.data.data.task),
 
   dashboard: (orgId: string, hotelId: string) =>
     apiClient
       .get<{
         data: { dashboard: HousekeepingDashboard };
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/housekeeping/dashboard`)
+      }>(`/organizations/${orgId}/hotels/${hotelId}/housekeeping/dashboard`)
       .then((r) => r.data.data.dashboard),
 
   create: (
@@ -166,28 +166,28 @@ const hkApi = {
     apiClient
       .post<{
         data: { task: HousekeepingTask };
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/housekeeping/tasks`, input)
+      }>(`/organizations/${orgId}/hotels/${hotelId}/housekeeping/tasks`, input)
       .then((r) => r.data.data.task),
 
   autoGenerate: (orgId: string, hotelId: string) =>
     apiClient
       .post<{
         data: { generated: number };
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/housekeeping/tasks/auto-generate`, {})
+      }>(`/organizations/${orgId}/hotels/${hotelId}/housekeeping/tasks/auto-generate`, {})
       .then((r) => r.data.data),
 
   bulkAssign: (orgId: string, hotelId: string, input: BulkAssignInput) =>
     apiClient
       .post<{
         data: { assigned: number };
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/housekeeping/tasks/bulk-assign`, input)
+      }>(`/organizations/${orgId}/hotels/${hotelId}/housekeeping/tasks/bulk-assign`, input)
       .then((r) => r.data.data),
 
   start: (orgId: string, hotelId: string, id: string) =>
     apiClient
       .post<{
         data: { task: HousekeepingTask };
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/housekeeping/tasks/${id}/start`, {})
+      }>(`/organizations/${orgId}/hotels/${hotelId}/housekeeping/tasks/${id}/start`, {})
       .then((r) => r.data.data.task),
 
   complete: (
@@ -199,7 +199,7 @@ const hkApi = {
     apiClient
       .post<{
         data: { task: HousekeepingTask };
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/housekeeping/tasks/${id}/complete`, input)
+      }>(`/organizations/${orgId}/hotels/${hotelId}/housekeeping/tasks/${id}/complete`, input)
       .then((r) => r.data.data.task),
 
   verify: (
@@ -211,7 +211,7 @@ const hkApi = {
     apiClient
       .post<{
         data: { task: HousekeepingTask };
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/housekeeping/tasks/${id}/verify`, input)
+      }>(`/organizations/${orgId}/hotels/${hotelId}/housekeeping/tasks/${id}/verify`, input)
       .then((r) => r.data.data.task),
 
   reportIssues: (
@@ -223,28 +223,28 @@ const hkApi = {
     apiClient
       .post<{
         data: { task: HousekeepingTask };
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/housekeeping/tasks/${id}/issues`, input)
+      }>(`/organizations/${orgId}/hotels/${hotelId}/housekeeping/tasks/${id}/issues`, input)
       .then((r) => r.data.data.task),
 
   staffTasks: (orgId: string, hotelId: string, staffId: string) =>
     apiClient
       .get<{
         data: { tasks: HousekeepingTask[] };
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/housekeeping/staff/${staffId}/tasks`)
+      }>(`/organizations/${orgId}/hotels/${hotelId}/housekeeping/staff/${staffId}/tasks`)
       .then((r) => r.data.data.tasks),
 
   inspections: (orgId: string, hotelId: string) =>
     apiClient
       .get<{
         data: { inspections: HousekeepingTask[] };
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/housekeeping/inspections`)
+      }>(`/organizations/${orgId}/hotels/${hotelId}/housekeeping/inspections`)
       .then((r) => r.data.data.inspections),
 
   requestTurndown: (orgId: string, hotelId: string, roomId: string) =>
     apiClient
       .post<{
         data: { task: HousekeepingTask };
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/housekeeping/rooms/${roomId}/turndown`, {})
+      }>(`/organizations/${orgId}/hotels/${hotelId}/housekeeping/rooms/${roomId}/turndown`, {})
       .then((r) => r.data.data.task),
 };
 

@@ -74,8 +74,8 @@ export default function GuestsClient() {
   const initialTab = searchParams.get("tab") === "vip" ? "vip" : "all";
   const [activeTab, setActiveTab] = useState(initialTab);
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
-  const [guestType, setGuestType] = useState(searchParams.get("guestType") ?? "");
-  const [vipStatus, setVipStatus] = useState(searchParams.get("vipStatus") ?? "");
+  const [guestType, setGuestType] = useState(searchParams.get("guestType") ?? "all");
+  const [vipStatus, setVipStatus] = useState(searchParams.get("vipStatus") ?? "all");
   const [page, setPageLocal] = useState(Number(searchParams.get("page")) || 1);
 
   // Debounced search for API
@@ -98,8 +98,8 @@ export default function GuestsClient() {
     const params = new URLSearchParams();
     if (activeTab !== "all") params.set("tab", activeTab);
     if (search) params.set("search", search);
-    if (guestType) params.set("guestType", guestType);
-    if (vipStatus) params.set("vipStatus", vipStatus);
+    if (guestType && guestType !== "all") params.set("guestType", guestType);
+    if (vipStatus && vipStatus !== "all") params.set("vipStatus", vipStatus);
     if (page > 1) params.set("page", String(page));
     const qs = params.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
@@ -109,8 +109,8 @@ export default function GuestsClient() {
   const queryParams = useMemo(() => {
     const p: Record<string, unknown> = { page, limit: 20 };
     if (debouncedSearch) p.search = debouncedSearch;
-    if (guestType) p.guestType = guestType;
-    if (vipStatus) p.vipStatus = vipStatus;
+    if (guestType && guestType !== "all") p.guestType = guestType;
+    if (vipStatus && vipStatus !== "all") p.vipStatus = vipStatus;
     return p;
   }, [debouncedSearch, guestType, vipStatus, page]);
 
@@ -131,7 +131,7 @@ export default function GuestsClient() {
     setPageLocal(1);
   }, []);
 
-  const hasActiveFilters = !!(search || guestType || vipStatus);
+  const hasActiveFilters = !!(search || (guestType && guestType !== "all") || (vipStatus && vipStatus !== "all"));
 
   const handleGuestTypeChange = useCallback((value: string) => {
     setGuestType(value);
@@ -145,8 +145,8 @@ export default function GuestsClient() {
 
   const handleClear = useCallback(() => {
     setSearch("");
-    setGuestType("");
-    setVipStatus("");
+    setGuestType("all");
+    setVipStatus("all");
     setPageLocal(1);
   }, []);
 

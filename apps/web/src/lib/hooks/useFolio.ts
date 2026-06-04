@@ -174,7 +174,7 @@ const folioApi = {
       .get<{
         data: FolioResponse;
       }>(
-        `/api/v1/organizations/${orgId}/hotels/${hotelId}/reservations/${reservationId}/folio`,
+        `/organizations/${orgId}/hotels/${hotelId}/reservations/${reservationId}/folio`,
       )
       .then((r) => r.data.data),
 
@@ -188,7 +188,7 @@ const folioApi = {
       .post<{
         data: { item: FolioItem };
       }>(
-        `/api/v1/organizations/${orgId}/hotels/${hotelId}/reservations/${reservationId}/folio/items`,
+        `/organizations/${orgId}/hotels/${hotelId}/reservations/${reservationId}/folio/items`,
         input,
       )
       .then((r) => r.data.data.item),
@@ -203,7 +203,7 @@ const folioApi = {
       .post<{
         data: { posted: number; failed: number };
       }>(
-        `/api/v1/organizations/${orgId}/hotels/${hotelId}/reservations/${reservationId}/folio/items/bulk`,
+        `/organizations/${orgId}/hotels/${hotelId}/reservations/${reservationId}/folio/items/bulk`,
         { items },
       )
       .then((r) => r.data.data),
@@ -219,7 +219,7 @@ const folioApi = {
       .post<{
         data: { item: FolioItem };
       }>(
-        `/api/v1/organizations/${orgId}/hotels/${hotelId}/reservations/${reservationId}/folio/items/${itemId}/void`,
+        `/organizations/${orgId}/hotels/${hotelId}/reservations/${reservationId}/folio/items/${itemId}/void`,
         { reason },
       )
       .then((r) => r.data.data.item),
@@ -234,7 +234,7 @@ const folioApi = {
       .post<{
         data: { payment: FolioPayment; newBalance: number };
       }>(
-        `/api/v1/organizations/${orgId}/hotels/${hotelId}/reservations/${reservationId}/payments`,
+        `/organizations/${orgId}/hotels/${hotelId}/reservations/${reservationId}/payments`,
         input,
       )
       .then((r) => r.data.data),
@@ -250,7 +250,7 @@ const folioApi = {
       .post<{
         data: { payment: FolioPayment };
       }>(
-        `/api/v1/organizations/${orgId}/hotels/${hotelId}/reservations/${reservationId}/payments/${paymentId}/refund`,
+        `/organizations/${orgId}/hotels/${hotelId}/reservations/${reservationId}/payments/${paymentId}/refund`,
         input,
       )
       .then((r) => r.data.data.payment),
@@ -265,7 +265,7 @@ const folioApi = {
       .post<{
         data: { payment: FolioPayment };
       }>(
-        `/api/v1/organizations/${orgId}/hotels/${hotelId}/reservations/${reservationId}/payments/${paymentId}/void`,
+        `/organizations/${orgId}/hotels/${hotelId}/reservations/${reservationId}/payments/${paymentId}/void`,
         {},
       )
       .then((r) => r.data.data.payment),
@@ -280,7 +280,7 @@ const folioApi = {
       .post<{
         data: { invoice: FolioInvoice };
       }>(
-        `/api/v1/organizations/${orgId}/hotels/${hotelId}/reservations/${reservationId}/invoices`,
+        `/organizations/${orgId}/hotels/${hotelId}/reservations/${reservationId}/invoices`,
         input,
       )
       .then((r) => r.data.data.invoice),
@@ -295,7 +295,7 @@ const folioApi = {
       .get<{
         data: { invoice: FolioInvoice };
       }>(
-        `/api/v1/organizations/${orgId}/hotels/${hotelId}/reservations/${reservationId}/invoices/${invoiceId}`,
+        `/organizations/${orgId}/hotels/${hotelId}/reservations/${reservationId}/invoices/${invoiceId}`,
       )
       .then((r) => r.data.data.invoice),
 
@@ -309,7 +309,7 @@ const folioApi = {
       .post<{
         data: unknown;
       }>(
-        `/api/v1/organizations/${orgId}/hotels/${hotelId}/reservations/${reservationId}/invoices/${invoiceId}/send`,
+        `/organizations/${orgId}/hotels/${hotelId}/reservations/${reservationId}/invoices/${invoiceId}/send`,
         {},
       )
       .then((r) => r.data),
@@ -324,7 +324,7 @@ const folioApi = {
       .post<{
         data: { invoice: FolioInvoice };
       }>(
-        `/api/v1/organizations/${orgId}/hotels/${hotelId}/reservations/${reservationId}/invoices/${invoiceId}/void`,
+        `/organizations/${orgId}/hotels/${hotelId}/reservations/${reservationId}/invoices/${invoiceId}/void`,
         {},
       )
       .then((r) => r.data.data.invoice),

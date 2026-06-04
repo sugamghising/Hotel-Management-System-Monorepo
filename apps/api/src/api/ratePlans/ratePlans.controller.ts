@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import { ServiceResponse, handleServiceResponse } from '../../common';
 import { asyncHandler } from '../../core';
-import type { RatePlanQueryInput } from './ratePlans.schema';
+import { RatePlanQuerySchema } from './ratePlans.schema';
 import { ratePlansService } from './ratePlans.service';
 import type {
   CreateRatePlanInput,
@@ -55,7 +55,7 @@ export class RatePlansController {
    */
   list = asyncHandler(async (req: Request, res: Response) => {
     const { organizationId, hotelId } = req.params as { organizationId: string; hotelId: string };
-    const query = req.query as unknown as RatePlanQueryInput;
+    const query = RatePlanQuerySchema.parse(req.query);
 
     const result = await ratePlansService.findByHotel(
       hotelId,

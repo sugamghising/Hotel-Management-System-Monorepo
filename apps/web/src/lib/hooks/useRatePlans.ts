@@ -175,14 +175,14 @@ const ratePlanApi = {
     apiClient
       .get<{
         data: RatePlanListResponse;
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/rate-plans`, { params })
+      }>(`/organizations/${orgId}/hotels/${hotelId}/rate-plans`, { params })
       .then((r) => r.data.data),
 
   getById: (orgId: string, hotelId: string, id: string, withStats = false) =>
     apiClient
       .get<{
         data: { ratePlan: RatePlan };
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/rate-plans/${id}`, { params: { stats: withStats } })
+      }>(`/organizations/${orgId}/hotels/${hotelId}/rate-plans/${id}`, { params: { stats: withStats } })
       .then((r) => r.data.data.ratePlan),
 
   getCalendar: (
@@ -195,14 +195,14 @@ const ratePlanApi = {
     apiClient
       .get<{
         data: { calendar: RateCalendarResponse };
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/rate-plans/${id}/calendar`, { params: { startDate, endDate } })
+      }>(`/organizations/${orgId}/hotels/${hotelId}/rate-plans/${id}/calendar`, { params: { startDate, endDate } })
       .then((r) => r.data.data.calendar),
 
   calculate: (orgId: string, hotelId: string, input: RateCalculationInput) =>
     apiClient
       .post<{
         data: RateCalculationResult;
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/rate-plans/calculate`, input)
+      }>(`/organizations/${orgId}/hotels/${hotelId}/rate-plans/calculate`, input)
       .then((r) => r.data.data),
 
   updateOverride: (
@@ -214,7 +214,7 @@ const ratePlanApi = {
     apiClient
       .put<{
         data: { override: unknown };
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/rate-plans/${id}/overrides`, input)
+      }>(`/organizations/${orgId}/hotels/${hotelId}/rate-plans/${id}/overrides`, input)
       .then((r) => r.data.data),
 
   bulkOverride: (
@@ -226,12 +226,12 @@ const ratePlanApi = {
     apiClient
       .post<{
         data: { updatedCount: number };
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/rate-plans/${id}/overrides/bulk`, input)
+      }>(`/organizations/${orgId}/hotels/${hotelId}/rate-plans/${id}/overrides/bulk`, input)
       .then((r) => r.data.data),
 
   deleteOverride: (orgId: string, hotelId: string, id: string, date: string) =>
     apiClient
-      .delete(`/api/v1/organizations/${orgId}/hotels/${hotelId}/rate-plans/${id}/overrides`, {
+      .delete(`/organizations/${orgId}/hotels/${hotelId}/rate-plans/${id}/overrides`, {
         data: { date },
       })
       .then((r) => r.data),
@@ -250,7 +250,7 @@ const ratePlanApi = {
     apiClient
       .post<{
         data: { ratePlan: RatePlan };
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/rate-plans/${id}/clone`, input)
+      }>(`/organizations/${orgId}/hotels/${hotelId}/rate-plans/${id}/clone`, input)
       .then((r) => r.data.data.ratePlan),
 };
 

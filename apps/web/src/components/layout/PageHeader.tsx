@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { ChevronRight } from "lucide-react";
 
@@ -22,6 +22,9 @@ export function PageHeader({
   breadcrumb,
   className,
 }: PageHeaderProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
   return (
     <div className={cn("mb-6", className)}>
       {/* Breadcrumb */}
@@ -63,7 +66,7 @@ export function PageHeader({
             <p className="mt-0.5 text-sm text-muted-foreground">{subtitle}</p>
           )}
         </div>
-        {actions && (
+        {mounted && actions && (
           <div className="flex items-center gap-2 shrink-0">{actions}</div>
         )}
       </div>

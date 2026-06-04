@@ -158,36 +158,36 @@ export const GUEST_KEYS = {
 const guestApi = {
   list: (orgId: string, params?: Record<string, unknown>) =>
     apiClient
-      .get<{ data: GuestListResponse }>(`/api/v1/${orgId}/guests`, { params })
+      .get<{ data: GuestListResponse }>(`/organizations/${orgId}/guests`, { params })
       .then((r) => r.data.data),
 
   getById: (orgId: string, id: string) =>
     apiClient
       .get<{
         data: { guest: Guest };
-      }>(`/api/v1/organizations/${orgId}/guests/${id}`)
+      }>(`/organizations/${orgId}/guests/${id}`)
       .then((r) => r.data.data.guest),
 
   create: (orgId: string, input: CreateGuestInput) =>
     apiClient
       .post<{
         data: { guest: Guest };
-      }>(`/api/v1/organizations/${orgId}/guests`, input)
+      }>(`/organizations/${orgId}/guests`, input)
       .then((r) => r.data.data.guest),
 
   update: (orgId: string, id: string, input: UpdateGuestInput) =>
     apiClient
       .patch<{
         data: { guest: Guest };
-      }>(`/api/v1/organizations/${orgId}/guests/${id}`, input)
+      }>(`/organizations/${orgId}/guests/${id}`, input)
       .then((r) => r.data.data.guest),
 
   history: (orgId: string, id: string) =>
     apiClient
       .get<{
-        data: { reservations: GuestStayHistory[] };
-      }>(`/api/v1/organizations/${orgId}/guests/${id}/history`)
-      .then((r) => r.data.data.reservations),
+        data: { history: GuestStayHistory[] };
+      }>(`/organizations/${orgId}/guests/${id}/history`)
+      .then((r) => r.data.data.history),
 
   updateVip: (
     orgId: string,
@@ -197,7 +197,7 @@ const guestApi = {
   ) =>
     apiClient
       .post<{ data: { guest: Guest } }>(
-        `/api/v1/organizations/${orgId}/guests/${id}/vip-status`,
+        `/organizations/${orgId}/guests/${id}/vip-status`,
         {
           vipStatus,
           vipReason,
@@ -213,14 +213,14 @@ const guestApi = {
     apiClient
       .patch<{
         data: { guest: Guest };
-      }>(`/api/v1/organizations/${orgId}/guests/${id}/preferences`, preferences)
+      }>(`/organizations/${orgId}/guests/${id}/preferences`, preferences)
       .then((r) => r.data.data.guest),
 
   vipList: (orgId: string, hotelId: string) =>
     apiClient
       .get<{
         data: { guests: GuestListItem[] };
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/guests/vip`)
+      }>(`/organizations/${orgId}/hotels/${hotelId}/guests/vip`)
       .then((r) => r.data.data.guests),
 
   searchDuplicates: (
@@ -230,14 +230,14 @@ const guestApi = {
     apiClient
       .get<{
         data: { guests: GuestListItem[] };
-      }>(`/api/v1/organizations/${orgId}/guests/search/duplicate`, { params })
+      }>(`/organizations/${orgId}/guests/search/duplicate`, { params })
       .then((r) => r.data.data.guests),
 
   merge: (orgId: string, id: string, sourceId: string) =>
     apiClient
       .post<{
         data: { guest: Guest };
-      }>(`/api/v1/organizations/${orgId}/guests/${id}/merge`, { sourceId })
+      }>(`/organizations/${orgId}/guests/${id}/merge`, { sourceId })
       .then((r) => r.data.data.guest),
 };
 

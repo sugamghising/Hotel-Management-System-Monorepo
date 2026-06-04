@@ -69,56 +69,56 @@ const nightAuditApi = {
     apiClient
       .get<{
         data: { audit: NightAuditStatus_ };
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/night-audit/status`)
+      }>(`/organizations/${orgId}/hotels/${hotelId}/night-audit/status`)
       .then((r) => r.data.data.audit),
 
   preCheck: (orgId: string, hotelId: string) =>
     apiClient
       .get<{
         data: NightAuditPreCheck;
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/night-audit/pre-check`)
+      }>(`/organizations/${orgId}/hotels/${hotelId}/night-audit/pre-check`)
       .then((r) => r.data.data),
 
   history: (orgId: string, hotelId: string) =>
     apiClient
       .get<{
         data: { audits: NightAuditStatus_[] };
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/night-audit/history`)
+      }>(`/organizations/${orgId}/hotels/${hotelId}/night-audit/history`)
       .then((r) => r.data.data.audits),
 
   detail: (orgId: string, hotelId: string, auditId: string) =>
     apiClient
       .get<{
         data: { audit: NightAuditStatus_ };
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/night-audit/${auditId}/details`)
+      }>(`/organizations/${orgId}/hotels/${hotelId}/night-audit/${auditId}/details`)
       .then((r) => r.data.data.audit),
 
   start: (orgId: string, hotelId: string, input: NightAuditRunInput) =>
     apiClient
       .post<{
         data: { audit: NightAuditStatus_ };
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/night-audit/start`, input)
+      }>(`/organizations/${orgId}/hotels/${hotelId}/night-audit/start`, input)
       .then((r) => r.data.data.audit),
 
   rollback: (orgId: string, hotelId: string, reason: string) =>
     apiClient
       .post<{
         data: unknown;
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/night-audit/rollback`, { reason })
+      }>(`/organizations/${orgId}/hotels/${hotelId}/night-audit/rollback`, { reason })
       .then((r) => r.data),
 
   autoPost: (orgId: string, hotelId: string) =>
     apiClient
       .post<{
         data: { posted: number };
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/night-audit/auto-post`, {})
+      }>(`/organizations/${orgId}/hotels/${hotelId}/night-audit/auto-post`, {})
       .then((r) => r.data.data),
 
   markNoShows: (orgId: string, hotelId: string) =>
     apiClient
       .post<{
         data: { marked: number };
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/night-audit/mark-no-shows`, {})
+      }>(`/organizations/${orgId}/hotels/${hotelId}/night-audit/mark-no-shows`, {})
       .then((r) => r.data.data),
 };
 

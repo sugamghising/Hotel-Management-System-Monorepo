@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Search, X } from "lucide-react";
 
 export const GUEST_TYPE_OPTIONS = [
-  { value: "", label: "All Types" },
+  { value: "all", label: "All Types" },
   { value: "TRANSIENT", label: "Transient" },
   { value: "CORPORATE", label: "Corporate" },
   { value: "GROUP", label: "Group" },
@@ -23,7 +23,7 @@ export const GUEST_TYPE_OPTIONS = [
 ] as const;
 
 export const VIP_OPTIONS = [
-  { value: "", label: "All VIP Status" },
+  { value: "all", label: "All VIP Status" },
   { value: "NONE", label: "None" },
   { value: "BRONZE", label: "Bronze" },
   { value: "SILVER", label: "Silver" },

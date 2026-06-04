@@ -110,42 +110,42 @@ const reportsApi = {
     apiClient
       .get<{
         data: OccupancyReport;
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/reports/occupancy`, { params })
+      }>(`/organizations/${orgId}/hotels/${hotelId}/reports/occupancy`, { params })
       .then((r) => r.data.data),
 
   revenue: (orgId: string, hotelId: string, params: ReportParams) =>
     apiClient
       .get<{
         data: RevenueReport;
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/reports/revenue`, { params })
+      }>(`/organizations/${orgId}/hotels/${hotelId}/reports/revenue`, { params })
       .then((r) => r.data.data),
 
   adr: (orgId: string, hotelId: string, params: ReportParams) =>
     apiClient
       .get<{
         data: ADRReport;
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/reports/adr`, { params })
+      }>(`/organizations/${orgId}/hotels/${hotelId}/reports/adr`, { params })
       .then((r) => r.data.data),
 
   revpar: (orgId: string, hotelId: string, params: ReportParams) =>
     apiClient
       .get<{
         data: ADRReport;
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/reports/revpar`, { params })
+      }>(`/organizations/${orgId}/hotels/${hotelId}/reports/revpar`, { params })
       .then((r) => r.data.data),
 
   nightAuditSummary: (orgId: string, hotelId: string, date: string) =>
     apiClient
       .get<{
         data: NightAuditSummary;
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/night-audit/reports/summary`, { params: { date } })
+      }>(`/organizations/${orgId}/hotels/${hotelId}/night-audit/reports/summary`, { params: { date } })
       .then((r) => r.data.data),
 
   nightAuditHistory: (orgId: string, hotelId: string) =>
     apiClient
       .get<{
         data: { audits: NightAuditSummary[] };
-      }>(`/api/v1/organizations/${orgId}/hotels/${hotelId}/night-audit/history`)
+      }>(`/organizations/${orgId}/hotels/${hotelId}/night-audit/history`)
       .then((r) => r.data.data.audits),
 };
 
