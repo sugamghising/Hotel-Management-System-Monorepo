@@ -48,6 +48,7 @@ interface DataTableProps<TData> {
   emptyIcon?: React.ReactNode;
   toolbar?: React.ReactNode;
   className?: string;
+  hidePagination?: boolean;
 }
 
 export function DataTable<TData>({
@@ -63,6 +64,7 @@ export function DataTable<TData>({
   emptyIcon,
   toolbar,
   className,
+  hidePagination = false,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -222,8 +224,8 @@ export function DataTable<TData>({
         </Table>
       </div>
 
-      {/* Pagination footer */}
-      <div className="flex items-center justify-between text-sm">
+      {!hidePagination && (
+        <div className="flex items-center justify-between text-sm">
         <p className="text-muted-foreground">
           {isLoading ? (
             <Skeleton className="h-4 w-24" />
@@ -274,6 +276,7 @@ export function DataTable<TData>({
           </Button>
         </div>
       </div>
+      )}
     </div>
   );
 }

@@ -34,7 +34,7 @@ export const useRoomGrid = () => {
     queryKey: ROOM_KEYS.grid(hotelId),
     queryFn: () => roomsApi.getGrid(orgId, hotelId),
     enabled: !!orgId && !!hotelId,
-    refetchInterval: 60 * 1000,
+    refetchInterval: 120 * 1000,
     select: (d) => d.grid,
   });
 };
@@ -69,8 +69,8 @@ export const useUpdateRoomStatus = () => {
   const { orgId, hotelId } = useCtx();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ roomId, status }: { roomId: string; status: string }) =>
-      roomsApi.updateStatus(orgId, hotelId, roomId, status),
+    mutationFn: ({ roomId, status, reason, priority }: { roomId: string; status: string; reason?: string; priority?: number }) =>
+      roomsApi.updateStatus(orgId, hotelId, roomId, status, reason, priority),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ROOM_KEYS.grid(hotelId) });
       qc.invalidateQueries({ queryKey: ["rooms", "list"] });
@@ -86,11 +86,51 @@ export const useBulkUpdateRoomStatus = () => {
   const { orgId, hotelId } = useCtx();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ roomIds, status }: { roomIds: string[]; status: string }) =>
-      roomsApi.bulkUpdateStatus(orgId, hotelId, roomIds, status),
+    mutationFn: ({ roomIds, status, reason }: { roomIds: string[]; status: string; reason?: string }) =>
+      roomsApi.bulkUpdateStatus(orgId, hotelId, roomIds, status, reason),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ROOM_KEYS.grid(hotelId) });
+      qc.invalidateQueries({ queryKey: ["rooms", "list"] });
       toast.success("Rooms updated");
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message ?? "Bulk status update failed");
     },
   });
 };
+
+export const useSetRoomOoo = () => {
+  const { orgId, hotelId } = useCtx();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: { reason: string; from: string; until: string; maintenanceRequired?: boolean } }) =>
+      roomsApi.setOoo(orgId, hotelId, id, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ROOM_KEYS.grid(hotelId) });
+      qc.invalidateQueries({ queryKey: ["rooms", "list"] });
+      toast.success("Room set out of order");
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message ?? "Failed to set room out of order");
+    },
+  });
+};
+
+export const useRemoveRoomOoo = () => {
+  const { orgId, hotelId } = useCtx();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
+      roomsApi.removeOoo(orgId, hotelId, id, reason ? { reason } : undefined),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ROOM_KEYS.grid(hotelId) });
+      qc.invalidateQueries({ queryKey: ["rooms", "list"] });
+      toast.success("Room returned to service");
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message ?? "Failed to return room to service");
+    },
+  });
+};
+
+export const useBulkRoomStatus = useBulkUpdateRoomStatus;

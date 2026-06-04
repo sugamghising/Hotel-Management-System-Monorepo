@@ -113,10 +113,12 @@ export const roomsApi = {
     hotelId: string,
     roomId: string,
     status: string,
+    reason?: string,
+    priority?: number,
   ): Promise<void> => {
     await apiClient.post(
       `/organizations/${orgId}/hotels/${hotelId}/rooms/${roomId}/status`,
-      { status },
+      { status, ...(reason ? { reason } : {}), ...(priority ? { priority } : {}) },
     );
   },
 
@@ -125,12 +127,14 @@ export const roomsApi = {
     hotelId: string,
     roomIds: string[],
     status: string,
+    reason?: string,
   ): Promise<void> => {
     await apiClient.post(
       `/organizations/${orgId}/hotels/${hotelId}/rooms/bulk-status`,
       {
         roomIds,
         status,
+        ...(reason ? { reason } : {}),
       },
     );
   },
@@ -147,5 +151,29 @@ export const roomsApi = {
       },
     );
     return data.data;
+  },
+
+  setOoo: async (
+    orgId: string,
+    hotelId: string,
+    roomId: string,
+    data: { reason: string; from: string; until: string; maintenanceRequired?: boolean },
+  ): Promise<void> => {
+    await apiClient.post(
+      `/organizations/${orgId}/hotels/${hotelId}/rooms/${roomId}/ooo`,
+      data,
+    );
+  },
+
+  removeOoo: async (
+    orgId: string,
+    hotelId: string,
+    roomId: string,
+    data?: { reason?: string },
+  ): Promise<void> => {
+    await apiClient.delete(
+      `/organizations/${orgId}/hotels/${hotelId}/rooms/${roomId}/ooo`,
+      { data },
+    );
   },
 };
