@@ -79,6 +79,7 @@ export interface GuestListItem {
   guestType: GuestType;
   vipStatus: VIPStatus;
   totalStays: number;
+  totalRevenue?: number;
   lastStayDate: string | null;
   companyName: string | null;
 }
