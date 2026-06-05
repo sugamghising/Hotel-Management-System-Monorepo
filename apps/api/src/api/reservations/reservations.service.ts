@@ -18,6 +18,7 @@ import {
   reservationsRepository,
 } from './reservations.repository';
 import { folioService } from '../folio/folio.service';
+import type { PaymentMethod } from '../folio/folio.types';
 import type {
   CheckInInput,
   CheckOutInput,
@@ -815,7 +816,7 @@ export class ReservationsService {
           organizationId,
           {
             amount: input.payment.amount,
-            method: input.payment.method,
+            method: input.payment.method as PaymentMethod,
             currencyCode: reservation.currencyCode,
             notes: 'Checkout settlement',
           },
