@@ -17,10 +17,14 @@ COPY apps/api/package.json apps/api/
 # Install all dependencies (including dev)
 RUN pnpm install --frozen-lockfile
 
-# Copy workspace package sources and build them
+# Copy workspace package sources
 COPY packages/schemas/ packages/schemas/
 COPY packages/types/ packages/types/
 
+# Re-link workspace packages after source copy (avoids stale symlinks)
+RUN pnpm install --frozen-lockfile
+
+# Build workspace packages
 RUN pnpm --filter @hms/schemas build && \
     pnpm --filter @hms/types build
 
