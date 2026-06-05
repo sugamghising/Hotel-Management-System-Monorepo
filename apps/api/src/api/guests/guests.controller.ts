@@ -61,6 +61,7 @@ export class GuestsController {
         Object.entries({
           search: query.search,
           vipStatus: query.vipStatus,
+          vipOnly: query.vipOnly,
           guestType: query.guestType,
           companyName: query.companyName,
           hasEmail: query.hasEmail,

@@ -45,7 +45,7 @@ export const buildNav = (orgId: string, hotelId: string): NavItem[] => [
   },
   {
     label: "Guests",
-    href: `/hotels/${hotelId}/guests`,
+    href: `/guests`,
     icon: Users,
     permission: "GUEST.READ",
   },

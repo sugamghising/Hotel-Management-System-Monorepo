@@ -17,29 +17,53 @@ const decodeJwt = (token: string): Record<string, any> | null => {
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, setAuth, organizationId, organizationCode, logout } =
+  const { setAuth, organizationId, organizationCode, refreshToken, logout } =
     useAuthStore();
-  const initialized = useRef(false);
+  const restored = useRef(false);
 
   useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
+    if (restored.current) return;
+    restored.current = true;
 
-    // If localStorage says we're authenticated but we have no access token in memory
-    // (page reload case), we can't do anything without a refresh token.
-    // The refresh token is also in memory only — so on hard reload we must
-    // redirect to login. This is the correct secure behavior.
-    //
-    // The session cookie keeps the middleware from blocking protected routes
-    // but the API calls will 401 until the user logs in again.
-    //
-    // For production, consider storing the refresh token in an httpOnly cookie
-    // (set by the backend) so it survives page reloads transparently.
-    if (isAuthenticated && !getAccessToken()) {
-      // Tokens lost on reload — clear session and redirect to login
-      logout();
-    }
-  }, []);
+    const restoreSession = async () => {
+      // If the app has a persisted refresh token but no in-memory access token,
+      // restore the session once and repopulate in-memory auth state.
+      if (!getAccessToken() && refreshToken) {
+        try {
+          // This call will trigger the interceptor refresh flow if needed.
+          const me = await authApi.me();
+          const decoded = decodeJwt(getAccessToken() ?? "");
+          const tokenIsSuperAdmin: boolean =
+            decoded?.user?.isSuperAdmin ?? false;
+          const tokenPermissions: string[] = decoded?.session?.permissions ?? [];
+          const orgId = me.organizationId ?? organizationId ?? "";
+
+          const user = {
+            id: me.id,
+            email: me.email,
+            firstName: me.firstName,
+            lastName: me.lastName,
+            isSuperAdmin: tokenIsSuperAdmin,
+            permissions: tokenPermissions,
+            organizationId: orgId,
+          };
+
+          setAuth(
+            user,
+            orgId,
+            organizationCode ?? "",
+            getAccessToken() ?? "",
+            useAuthStore.getState().refreshToken ?? refreshToken,
+          );
+        } catch (error) {
+          console.error("Session restoration failed:", error);
+          logout();
+        }
+      }
+    };
+
+    restoreSession();
+  }, [refreshToken, organizationId, organizationCode, setAuth, logout]);
 
   return <>{children}</>;
 }

@@ -110,7 +110,7 @@ export class AuthController {
       );
       handleServiceResponse(
         ServiceResponse.success(
-          { data: { tokens } },
+          { tokens },
           "Token refreshed successfully",
         ),
         res,

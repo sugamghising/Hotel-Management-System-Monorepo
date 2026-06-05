@@ -265,6 +265,7 @@ export interface GuestListResponse {
     guestType: GuestType;
     companyName: string | null;
     totalStays: number;
+    totalRevenue: number;
     lastStayDate: Date | null;
     createdAt: Date;
   }>;
@@ -318,6 +319,7 @@ export interface MergeGuestsInput {
 export interface GuestQueryFilters {
   search?: string;
   vipStatus?: VIPStatus;
+  vipOnly?: boolean;
   guestType?: GuestType;
   companyName?: string;
   hasEmail?: boolean;

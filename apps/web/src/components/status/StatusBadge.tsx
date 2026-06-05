@@ -4,6 +4,7 @@ import {
   ROOM_STATUS_MAP,
   HK_STATUS_MAP,
   MAINTENANCE_STATUS_MAP,
+  NIGHT_AUDIT_STATUS_MAP,
   PRIORITY_MAP,
   VIP_MAP,
 } from "@/lib/constants/statuses";
@@ -73,6 +74,25 @@ export function MaintenanceBadge({
 }) {
   const cfg = MAINTENANCE_STATUS_MAP[status];
   return <StatusBadge label={cfg.label} color={cfg.color} />;
+}
+
+export function NightAuditBadge({
+  status,
+  size,
+}: {
+  status: keyof typeof NIGHT_AUDIT_STATUS_MAP;
+  size?: "sm" | "md" | "lg";
+}) {
+  const cfg = NIGHT_AUDIT_STATUS_MAP[status];
+  return (
+    <StatusBadge
+      label={cfg.label}
+      color={cfg.color}
+      dot={cfg.dot}
+      showDot
+      size={size}
+    />
+  );
 }
 
 export function PriorityBadge({

@@ -142,6 +142,7 @@ export const UpdateGuestSchema = z.object({
 export const GuestQuerySchema = z.object({
   search: z.string().optional(),
   vipStatus: VIPStatusSchema.optional(),
+  vipOnly: z.coerce.boolean().optional(),
   guestType: GuestTypeSchema.optional(),
   companyName: z.string().optional(),
   hasEmail: z.coerce.boolean().optional(),

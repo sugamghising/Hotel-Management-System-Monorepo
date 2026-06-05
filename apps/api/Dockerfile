@@ -1,53 +1,73 @@
 # Build stage
 FROM node:20-alpine AS builder
 
+RUN apk add --no-cache openssl
+
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 WORKDIR /app
 
-# Copy package files for better layer caching
-COPY package*.json ./
+# Copy workspace root config for dependency resolution
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+
+# Copy package manifests (for layer caching)
+COPY packages/schemas/package.json packages/types/package.json ./packages/
+COPY apps/api/package.json apps/api/
 
 # Install all dependencies (including dev)
-RUN npm ci
+RUN pnpm install --frozen-lockfile
 
-# Copy Prisma schema before generating Prisma client
-COPY prisma/schema.prisma ./prisma/
+# Copy workspace package sources and build them
+COPY packages/schemas/ packages/schemas/
+COPY packages/types/ packages/types/
 
-# Generate Prisma client
-RUN npx prisma generate
+RUN pnpm --filter @hms/schemas build
+RUN pnpm --filter @hms/types build
 
-# Copy tsconfig and source files
-COPY tsconfig.json ./
-COPY . .
+# Copy Prisma schema and generate client
+COPY apps/api/prisma apps/api/prisma/
+RUN cd apps/api && npx prisma generate
 
-# Build TypeScript
-RUN npm run build
+# Copy API source and build
+COPY apps/api/ apps/api/
+RUN cd apps/api && pnpm run build
 
 # Production stage
 FROM node:20-alpine AS production
 
-WORKDIR /app
+RUN apk add --no-cache openssl
 
-# Set production environment
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+WORKDIR /app
 ENV NODE_ENV=production
 
-# Create non-root user for security
+# Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001
 
-# Copy package files
-COPY package*.json ./
+# Copy workspace root config
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 
-# Install production dependencies only
-RUN npm ci --omit=dev && npm cache clean --force
+# Copy package manifests for production install
+COPY packages/schemas/package.json packages/types/package.json ./packages/
+COPY apps/api/package.json apps/api/
+COPY apps/api/tsconfig.json apps/api/
 
-# Copy built files from builder stage
-COPY --from=builder /app/dist ./dist
+# Install production dependencies
+RUN pnpm install --frozen-lockfile --prod
 
-# Copy generated Prisma client
-COPY --from=builder /app/src/generated/prisma ./dist/generated/prisma
+# Install tsx globally for path alias resolution at runtime
+RUN npm install -g tsx
 
-# Create logs directory
-RUN mkdir -p logs && chown -R nodejs:nodejs logs
+# Copy built artifacts from builder
+COPY --from=builder /app/apps/api/dist ./apps/api/dist
+COPY --from=builder /app/apps/api/src/generated/prisma ./apps/api/dist/generated/prisma
+COPY --from=builder /app/packages/schemas/dist ./packages/schemas/dist
+COPY --from=builder /app/packages/types/dist ./packages/types/dist
+
+# Create logs directory and set ownership
+RUN mkdir -p logs && chown -R nodejs:nodejs .
 
 # Switch to non-root user
 USER nodejs
@@ -59,5 +79,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
 
-# Start the application
-CMD ["node", "dist/server.js"]
+# Use tsx to run compiled server (handles tsconfig path aliases)
+CMD ["tsx", "apps/api/dist/server.js"]

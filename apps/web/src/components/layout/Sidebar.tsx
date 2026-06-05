@@ -59,8 +59,13 @@ export function Sidebar() {
     router.replace("/login");
   };
 
-  const isActive = (href: string) =>
-    pathname === href || (href !== "/" && pathname.startsWith(href));
+  const isActive = (href: string) => {
+    if (pathname === href) return true;
+    if (!pathname.startsWith(href)) return false;
+    if (pathname[href.length] !== "/") return false;
+    const segments = href.split("/").filter(Boolean);
+    return segments.length >= 3;
+  };
 
   if (!mounted) {
     return <aside className={cn("flex flex-col shrink-0 h-screen sticky top-0", "bg-sidebar-bg border-r border-sidebar-border", collapsed ? "w-16" : "w-64")} />;
