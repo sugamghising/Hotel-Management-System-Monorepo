@@ -6,12 +6,13 @@ import { toast } from "sonner";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type MaintenanceRequestStatus =
-  | "OPEN"
-  | "ASSIGNED"
+  | "REPORTED"
+  | "ACKNOWLEDGED"
+  | "SCHEDULED"
   | "IN_PROGRESS"
+  | "PENDING_PARTS"
   | "COMPLETED"
   | "VERIFIED"
-  | "ON_HOLD"
   | "CANCELLED";
 
 export type MaintenanceRequestType =
@@ -24,11 +25,15 @@ export type MaintenanceRequestType =
   | "CLEANING"
   | "PEST_CONTROL"
   | "SECURITY"
-  | "GENERAL";
+  | "GENERAL"
+  | "PAINTING"
+  | "SAFETY"
+  | "IT_EQUIPMENT"
+  | "OTHER";
 
 export type MaintenancePriority =
   | "LOW"
-  | "NORMAL"
+  | "MEDIUM"
   | "HIGH"
   | "URGENT"
   | "EMERGENCY";
@@ -48,6 +53,7 @@ export interface MaintenanceRequest {
   assignedTo: string | null;
   assignedAt: string | null;
   requestType: MaintenanceRequestType;
+  category: MaintenanceRequestType;
   priority: MaintenancePriority;
   status: MaintenanceRequestStatus;
   title: string;
@@ -91,6 +97,17 @@ export interface MaintenanceListResponse {
   };
 }
 
+export interface MaintenanceDashboardItem {
+  openCount: number;
+  overdueCount: number;
+  unassignedCount: number;
+  emergencyOpenCount: number;
+  completedTodayCount: number;
+  averageResolutionHours: number;
+  byPriority: Array<{ priority: string; count: number }>;
+  byStatus: Array<{ status: string; count: number }>;
+}
+
 export interface StaffWorkloadItem {
   staffId: string;
   staffName: string;
@@ -99,26 +116,21 @@ export interface StaffWorkloadItem {
 }
 
 export interface MaintenanceDashboard {
-  summary: {
-    open: number;
-    assigned: number;
-    inProgress: number;
-    completed: number;
-    verified: number;
-    onHold: number;
-  };
-  byPriority: Record<string, number>;
-  byType: Record<string, number>;
-  avgResolutionHours: number;
-  openRooms: number;
-  staffWorkload: StaffWorkloadItem[];
+  openCount: number;
+  overdueCount: number;
+  unassignedCount: number;
+  emergencyOpenCount: number;
+  completedTodayCount: number;
+  averageResolutionHours: number;
+  byPriority: Array<{ priority: string; count: number }>;
+  byStatus: Array<{ status: string; count: number }>;
 }
 
 export interface CreateMaintenanceInput {
   roomId?: string;
   title: string;
   description: string;
-  requestType: MaintenanceRequestType;
+  category: MaintenanceRequestType;
   priority: MaintenancePriority;
   location?: string;
   estimatedCost?: number;
@@ -138,6 +150,46 @@ export interface VerifyRequestInput {
 
 export interface PartsInput {
   parts: MaintenancePart[];
+}
+
+// ─── Status mapping ────────────────────────────────────────────────────────────
+
+const STATUS_TO_API: Record<string, string> = {
+  OPEN: "REPORTED",
+  ASSIGNED: "ACKNOWLEDGED",
+  ON_HOLD: "PENDING_PARTS",
+};
+
+const PRIORITY_TO_API: Record<string, string> = {
+  NORMAL: "MEDIUM",
+};
+
+function mapParamsToApi(params?: Record<string, unknown>): Record<string, unknown> | undefined {
+  if (!params) return undefined;
+  const mapped: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(params)) {
+    if (key === "requestType") {
+      mapped.category = value;
+    } else if (key === "from" || key === "to") {
+      continue;
+    } else if (key === "status" && typeof value === "string") {
+      mapped.status = value.split(",").map((s) => STATUS_TO_API[s.trim()] ?? s.trim()).join(",");
+    } else if (key === "priority" && typeof value === "string") {
+      mapped.priority = value.split(",").map((p) => PRIORITY_TO_API[p.trim()] ?? p.trim()).join(",");
+    } else {
+      mapped[key] = value;
+    }
+  }
+
+  return mapped;
+}
+
+function mapResponseRequest(req: MaintenanceRequest): MaintenanceRequest {
+  return {
+    ...req,
+    requestType: req.category ?? req.requestType,
+  };
 }
 
 // ─── Query Keys ───────────────────────────────────────────────────────────────
@@ -163,37 +215,42 @@ const mtApi = {
     apiClient
       .get<{ data: MaintenanceListResponse }>(
         `/organizations/${orgId}/hotels/${hotelId}/maintenance/requests`,
-        { params },
+        { params: mapParamsToApi(params) },
       )
-      .then((r) => r.data.data),
+      .then((r) => ({
+        ...r.data.data,
+        requests: r.data.data.requests.map(mapResponseRequest),
+      })),
 
   getById: (orgId: string, hotelId: string, id: string) =>
     apiClient
       .get<{ data: { request: MaintenanceRequest } }>(
         `/organizations/${orgId}/hotels/${hotelId}/maintenance/requests/${id}`,
       )
-      .then((r) => r.data.data.request),
+      .then((r) => mapResponseRequest(r.data.data.request)),
 
   dashboard: (orgId: string, hotelId: string) =>
     apiClient
       .get<{ data: { dashboard: MaintenanceDashboard } }>(
-        `/organizations/${orgId}/hotels/${hotelId}/maintenance/requests/dashboard`,
+        `/organizations/${orgId}/hotels/${hotelId}/maintenance/dashboard`,
       )
       .then((r) => r.data.data.dashboard),
 
   pending: (orgId: string, hotelId: string) =>
     apiClient
-      .get<{ data: { requests: MaintenanceRequest[] } }>(
-        `/organizations/${orgId}/hotels/${hotelId}/maintenance/requests/pending`,
+      .get<{ data: MaintenanceListResponse }>(
+        `/organizations/${orgId}/hotels/${hotelId}/maintenance/requests`,
+        { params: { status: "COMPLETED", limit: 100 } },
       )
-      .then((r) => r.data.data.requests),
+      .then((r) => r.data.data.requests.map(mapResponseRequest)),
 
   urgent: (orgId: string, hotelId: string) =>
     apiClient
-      .get<{ data: { requests: MaintenanceRequest[] } }>(
-        `/organizations/${orgId}/hotels/${hotelId}/maintenance/requests/urgent`,
+      .get<{ data: MaintenanceListResponse }>(
+        `/organizations/${orgId}/hotels/${hotelId}/maintenance/requests`,
+        { params: { priority: "URGENT,EMERGENCY", limit: 100 } },
       )
-      .then((r) => r.data.data.requests),
+      .then((r) => r.data.data.requests.map(mapResponseRequest)),
 
   create: (orgId: string, hotelId: string, input: CreateMaintenanceInput) =>
     apiClient
@@ -201,7 +258,7 @@ const mtApi = {
         `/organizations/${orgId}/hotels/${hotelId}/maintenance/requests`,
         input,
       )
-      .then((r) => r.data.data.request),
+      .then((r) => mapResponseRequest(r.data.data.request)),
 
   assign: (orgId: string, hotelId: string, id: string, assignedTo: string) =>
     apiClient
@@ -209,7 +266,7 @@ const mtApi = {
         `/organizations/${orgId}/hotels/${hotelId}/maintenance/requests/${id}/assign`,
         { assignedTo },
       )
-      .then((r) => r.data.data.request),
+      .then((r) => mapResponseRequest(r.data.data.request)),
 
   start: (orgId: string, hotelId: string, id: string) =>
     apiClient
@@ -217,7 +274,7 @@ const mtApi = {
         `/organizations/${orgId}/hotels/${hotelId}/maintenance/requests/${id}/start`,
         {},
       )
-      .then((r) => r.data.data.request),
+      .then((r) => mapResponseRequest(r.data.data.request)),
 
   complete: (
     orgId: string,
@@ -230,7 +287,7 @@ const mtApi = {
         `/organizations/${orgId}/hotels/${hotelId}/maintenance/requests/${id}/complete`,
         input,
       )
-      .then((r) => r.data.data.request),
+      .then((r) => mapResponseRequest(r.data.data.request)),
 
   verify: (
     orgId: string,
@@ -243,7 +300,7 @@ const mtApi = {
         `/organizations/${orgId}/hotels/${hotelId}/maintenance/requests/${id}/verify`,
         input,
       )
-      .then((r) => r.data.data.request),
+      .then((r) => mapResponseRequest(r.data.data.request)),
 
   addParts: (orgId: string, hotelId: string, id: string, input: PartsInput) =>
     apiClient
@@ -251,7 +308,7 @@ const mtApi = {
         `/organizations/${orgId}/hotels/${hotelId}/maintenance/requests/${id}/parts`,
         input,
       )
-      .then((r) => r.data.data.request),
+      .then((r) => mapResponseRequest(r.data.data.request)),
 
   schedule: (
     orgId: string,
@@ -264,7 +321,7 @@ const mtApi = {
         `/organizations/${orgId}/hotels/${hotelId}/maintenance/requests/${id}/schedule`,
         { scheduledFor },
       )
-      .then((r) => r.data.data.request),
+      .then((r) => mapResponseRequest(r.data.data.request)),
 
   update: (
     orgId: string,
@@ -277,7 +334,7 @@ const mtApi = {
         `/organizations/${orgId}/hotels/${hotelId}/maintenance/requests/${id}`,
         input,
       )
-      .then((r) => r.data.data.request),
+      .then((r) => mapResponseRequest(r.data.data.request)),
 };
 
 // ─── Query Hooks ──────────────────────────────────────────────────────────────

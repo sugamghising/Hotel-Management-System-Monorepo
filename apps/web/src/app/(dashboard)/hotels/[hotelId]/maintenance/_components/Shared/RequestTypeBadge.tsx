@@ -14,6 +14,10 @@ const TYPE_MAP: Record<MaintenanceRequestType, { label: string; color: string }>
   PEST_CONTROL: { label: "Pest", color: "bg-red-50 text-red-700 border-red-200 dark:bg-red-500/30 dark:text-red-300" },
   SECURITY: { label: "Security", color: "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-500/30 dark:text-slate-300" },
   GENERAL: { label: "General", color: "bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-500/30 dark:text-gray-300" },
+  PAINTING: { label: "Painting", color: "bg-pink-50 text-pink-700 border-pink-200 dark:bg-pink-500/30 dark:text-pink-300" },
+  SAFETY: { label: "Safety", color: "bg-lime-50 text-lime-700 border-lime-200 dark:bg-lime-500/30 dark:text-lime-300" },
+  IT_EQUIPMENT: { label: "IT Equipment", color: "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-500/30 dark:text-violet-300" },
+  OTHER: { label: "Other", color: "bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-500/30 dark:text-gray-300" },
 };
 
 interface RequestTypeBadgeProps {

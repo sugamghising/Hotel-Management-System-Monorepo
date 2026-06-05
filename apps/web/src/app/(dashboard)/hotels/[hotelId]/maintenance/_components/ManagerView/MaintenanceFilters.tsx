@@ -21,14 +21,10 @@ interface MaintenanceFiltersProps {
   onStatusChange: (v: string) => void;
   priority: string;
   onPriorityChange: (v: string) => void;
-  requestType: string;
-  onRequestTypeChange: (v: string) => void;
+  category: string;
+  onCategoryChange: (v: string) => void;
   assignedTo: string;
   onAssignedToChange: (v: string) => void;
-  from: string;
-  onFromChange: (v: string) => void;
-  to: string;
-  onToChange: (v: string) => void;
   search: string;
   onSearchChange: (v: string) => void;
   hasActiveFilters: boolean;
@@ -41,14 +37,10 @@ export function MaintenanceFilters({
   onStatusChange,
   priority,
   onPriorityChange,
-  requestType,
-  onRequestTypeChange,
+  category,
+  onCategoryChange,
   assignedTo,
   onAssignedToChange,
-  from,
-  onFromChange,
-  to,
-  onToChange,
   search,
   onSearchChange,
   hasActiveFilters,
@@ -101,7 +93,7 @@ export function MaintenanceFilters({
         </SelectContent>
       </Select>
 
-      <Select value={requestType} onValueChange={onRequestTypeChange}>
+      <Select value={category} onValueChange={onCategoryChange}>
         <SelectTrigger className="h-9 w-[140px]">
           <SelectValue placeholder="All Types" />
         </SelectTrigger>
@@ -125,21 +117,6 @@ export function MaintenanceFilters({
           ))}
         </SelectContent>
       </Select>
-
-      <Input
-        type="date"
-        value={from}
-        onChange={(e) => onFromChange(e.target.value)}
-        className="h-9 w-[150px]"
-        placeholder="From"
-      />
-      <Input
-        type="date"
-        value={to}
-        onChange={(e) => onToChange(e.target.value)}
-        className="h-9 w-[150px]"
-        placeholder="To"
-      />
 
       {hasActiveFilters && (
         <Button variant="ghost" size="sm" onClick={onClear} className="h-9">

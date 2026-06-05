@@ -57,10 +57,8 @@ export default function MaintenanceClient() {
   const tab = searchParams.get("tab") ?? "overview";
   const status = searchParams.get("status") ?? "";
   const priority = searchParams.get("priority") ?? "";
-  const requestType = searchParams.get("requestType") ?? "";
+  const category = searchParams.get("category") ?? "";
   const assignedTo = searchParams.get("assignedTo") ?? "";
-  const from = searchParams.get("from") ?? "";
-  const to = searchParams.get("to") ?? "";
   const search = searchParams.get("search") ?? "";
   const page = Number(searchParams.get("page")) || 1;
 
@@ -71,22 +69,20 @@ export default function MaintenanceClient() {
     () => ({
       status: status || undefined,
       priority: priority || undefined,
-      requestType: requestType || undefined,
+      category: category || undefined,
       assignedTo: assignedTo || undefined,
-      from: from || undefined,
-      to: to || undefined,
       search: search || undefined,
       page,
       limit: 50,
     }),
-    [status, priority, requestType, assignedTo, from, to, search, page],
+    [status, priority, category, assignedTo, search, page],
   );
   const { data: requestList, isLoading: listLoading } = useMaintenanceRequests(hkParams);
   const { data: verificationList, isLoading: verificationLoading } = useMaintenanceRequests(
     useMemo(() => ({ status: "COMPLETED", limit: 50 }), []),
   );
   const staffParams = useMemo(
-    () => ({ assignedTo: user?.id ?? "", status: "ASSIGNED,IN_PROGRESS,COMPLETED" as any, limit: 100 }),
+    () => ({ assignedTo: user?.id ?? "", status: "ACKNOWLEDGED,IN_PROGRESS,COMPLETED" as any, limit: 100 }),
     [user?.id],
   );
   const { data: staffRequests, isLoading: staffLoading } = useMaintenanceRequests(
@@ -143,15 +139,11 @@ export default function MaintenanceClient() {
 
   // Handlers
   const handleTabChange = useCallback((newTab: string) => {
-    navigate({ tab: newTab, status: null, priority: null, requestType: null, assignedTo: null, from: null, to: null, search: null, page: null });
+    navigate({ tab: newTab, status: null, priority: null, category: null, assignedTo: null, search: null, page: null });
   }, [navigate]);
 
   const handleStatusClick = useCallback((clickedKey: string) => {
-    const statusMap: Record<string, string> = {
-      open: "OPEN", assigned: "ASSIGNED", inProgress: "IN_PROGRESS",
-      completed: "COMPLETED", verified: "VERIFIED", onHold: "ON_HOLD",
-    };
-    navigate({ tab: "requests", status: statusMap[clickedKey] ?? null, page: null });
+    navigate({ tab: "requests", status: clickedKey, page: null });
   }, [navigate]);
 
   const handlePriorityClick = useCallback((p: string) => {
@@ -168,7 +160,7 @@ export default function MaintenanceClient() {
   }, [navigate]);
 
   const handleClearFilters = useCallback(() => {
-    navigate({ status: null, priority: null, requestType: null, assignedTo: null, from: null, to: null, search: null, page: null });
+    navigate({ status: null, priority: null, category: null, assignedTo: null, search: null, page: null });
   }, [navigate]);
 
   const handlePageChange = useCallback((newPage: number) => {
@@ -222,7 +214,7 @@ export default function MaintenanceClient() {
   const requests = requestList?.requests ?? [];
   const total = requestList?.pagination?.total ?? 0;
   const verificationRequests = verificationList?.requests ?? [];
-  const hasActiveFilters = !!(status || priority || requestType || assignedTo || from || to || search);
+  const hasActiveFilters = !!(status || priority || category || assignedTo || search);
 
   // Access guard
   if (!isManager && !isTechnician) {
@@ -274,7 +266,7 @@ export default function MaintenanceClient() {
                 onPriorityClick={handlePriorityClick}
               />
               <StaffWorkloadPanel
-                workload={dashboard?.staffWorkload}
+                workload={[]}
                 isLoading={dashLoading}
                 onStaffClick={(staffId) => navigate({ tab: "requests", assignedTo: staffId, page: null })}
               />
@@ -286,19 +278,15 @@ export default function MaintenanceClient() {
                 onStatusChange={(v) => handleFilterChange("status", v)}
                 priority={priority}
                 onPriorityChange={(v) => handleFilterChange("priority", v)}
-                requestType={requestType}
-                onRequestTypeChange={(v) => handleFilterChange("requestType", v)}
+                category={category}
+                onCategoryChange={(v) => handleFilterChange("category", v)}
                 assignedTo={assignedTo}
                 onAssignedToChange={(v) => handleFilterChange("assignedTo", v)}
-                from={from}
-                onFromChange={(v) => handleFilterChange("from", v || null)}
-                to={to}
-                onToChange={(v) => handleFilterChange("to", v || null)}
                 search={search}
                 onSearchChange={handleSearchChange}
                 hasActiveFilters={hasActiveFilters}
                 onClear={handleClearFilters}
-                staffWorkload={dashboard?.staffWorkload}
+                staffWorkload={[]}
               />
 
               <MaintenanceTable
@@ -385,7 +373,7 @@ export default function MaintenanceClient() {
           requestId={assignTarget.id}
           requestTitle={assignTarget.title}
           currentAssignee={assignTarget.assignedTo}
-          staffWorkload={dashboard?.staffWorkload ?? []}
+          staffWorkload={[]}
           open
           onClose={() => setAssignTarget(null)}
         />

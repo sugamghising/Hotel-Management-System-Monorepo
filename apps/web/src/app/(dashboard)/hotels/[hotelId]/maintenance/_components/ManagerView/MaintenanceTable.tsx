@@ -161,7 +161,7 @@ export function MaintenanceTable({
         cell: ({ row }) => {
           const r = row.original;
           const isOpenOver24h =
-            r.status === "OPEN" &&
+            r.status === "REPORTED" &&
             r.createdAt &&
             new Date(r.createdAt).getTime() < Date.now() - 24 * 60 * 60 * 1000;
           if (r.assignee) {
@@ -259,14 +259,14 @@ export function MaintenanceTable({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-44">
-                {status === "OPEN" && (
+                {status === "REPORTED" && (
                   <>
                     {isManager && (
                       <DropdownMenuItem onClick={() => onAssign(r)}>Assign</DropdownMenuItem>
                     )}
                     <DropdownMenuItem onClick={() => onSchedule(r)}>Schedule</DropdownMenuItem>
                     <DropdownMenuItem onClick={() => onEdit(r)}>Edit</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onUpdateStatus(r.id, "ON_HOLD")}>
+                    <DropdownMenuItem onClick={() => onUpdateStatus(r.id, "PENDING_PARTS")}>
                       Put On Hold
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -278,7 +278,7 @@ export function MaintenanceTable({
                     </DropdownMenuItem>
                   </>
                 )}
-                {status === "ASSIGNED" && (
+                {status === "ACKNOWLEDGED" && (
                   <>
                     {isManager && (
                       <DropdownMenuItem onClick={() => onAssign(r)}>Reassign</DropdownMenuItem>
@@ -306,9 +306,9 @@ export function MaintenanceTable({
                 {status === "VERIFIED" && (
                   <DropdownMenuItem disabled>View details</DropdownMenuItem>
                 )}
-                {status === "ON_HOLD" && (
+                {status === "PENDING_PARTS" && (
                   <>
-                    <DropdownMenuItem onClick={() => onUpdateStatus(r.id, "OPEN")}>
+                    <DropdownMenuItem onClick={() => onUpdateStatus(r.id, "REPORTED")}>
                       Reopen
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => onEdit(r)}>Edit</DropdownMenuItem>

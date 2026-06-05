@@ -130,17 +130,25 @@ export const HK_STATUS_MAP = {
 } as const;
 
 export const MAINTENANCE_STATUS_MAP = {
-  OPEN: {
-    label: "Open",
+  REPORTED: {
+    label: "Reported",
     color: "bg-red-50 text-red-700 border-red-200",
   },
-  ASSIGNED: {
-    label: "Assigned",
+  ACKNOWLEDGED: {
+    label: "Acknowledged",
     color: "bg-amber-50 text-amber-700 border-amber-200",
+  },
+  SCHEDULED: {
+    label: "Scheduled",
+    color: "bg-orange-50 text-orange-700 border-orange-200",
   },
   IN_PROGRESS: {
     label: "In Progress",
     color: "bg-indigo-50 text-indigo-700 border-indigo-200",
+  },
+  PENDING_PARTS: {
+    label: "Pending Parts",
+    color: "bg-yellow-50 text-yellow-700 border-yellow-200",
   },
   COMPLETED: {
     label: "Completed",
@@ -149,10 +157,6 @@ export const MAINTENANCE_STATUS_MAP = {
   VERIFIED: {
     label: "Verified",
     color: "bg-slate-100 text-slate-500 border-slate-200",
-  },
-  ON_HOLD: {
-    label: "On Hold",
-    color: "bg-orange-50 text-orange-700 border-orange-200",
   },
   CANCELLED: {
     label: "Cancelled",

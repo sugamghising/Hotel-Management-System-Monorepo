@@ -46,7 +46,7 @@ export function VerifyDialog({ request, open, onClose, currency = "USD" }: Verif
       ? `[Rejected] ${verificationNotes}`
       : "[Rejected \u2014 needs rework]";
     updateMut.mutate(
-      { id: request.id, input: { status: "ASSIGNED" } },
+      { id: request.id, input: { status: "ACKNOWLEDGED" } },
       { onSuccess: onClose },
     );
   };

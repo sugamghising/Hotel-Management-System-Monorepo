@@ -39,7 +39,7 @@ import type { MaintenanceRequest } from "@/lib/hooks/useMaintenanceRequests";
 const createSchema = z.object({
   title: z.string().min(3, "Title must be at least 3 characters").max(200),
   description: z.string().min(5, "Description must be at least 5 characters").max(2000),
-  requestType: z.string().min(1, "Type is required"),
+  category: z.string().min(1, "Type is required"),
   priority: z.string().min(1, "Priority is required"),
   roomId: z.string().optional(),
   location: z.string().max(500).optional(),
@@ -66,7 +66,7 @@ export function CreateRequestDialog({ open, onClose, editRequest }: CreateReques
     defaultValues: {
       title: "",
       description: "",
-      requestType: "",
+      category: "",
       priority: "",
       roomId: "",
       location: "",
@@ -80,7 +80,7 @@ export function CreateRequestDialog({ open, onClose, editRequest }: CreateReques
       form.reset({
         title: editRequest.title,
         description: editRequest.description,
-        requestType: editRequest.requestType,
+        category: editRequest.requestType as any,
         priority: editRequest.priority,
         roomId: editRequest.roomId ?? "",
         location: editRequest.location ?? "",
@@ -91,7 +91,7 @@ export function CreateRequestDialog({ open, onClose, editRequest }: CreateReques
       form.reset({
         title: "",
         description: "",
-        requestType: "",
+      category: "",
         priority: "",
         roomId: "",
         location: "",
@@ -117,7 +117,7 @@ export function CreateRequestDialog({ open, onClose, editRequest }: CreateReques
     const input = {
       title: values.title,
       description: values.description,
-      requestType: values.requestType as any,
+      category: values.category as any,
       priority: values.priority as any,
       roomId: values.roomId || undefined,
       location: values.location?.trim() || undefined,
@@ -180,7 +180,7 @@ export function CreateRequestDialog({ open, onClose, editRequest }: CreateReques
             <div className="grid grid-cols-2 gap-3">
               <FormField
                 control={form.control}
-                name="requestType"
+                name="category"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Type *</FormLabel>

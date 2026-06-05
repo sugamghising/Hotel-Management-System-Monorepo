@@ -5,7 +5,7 @@ import type { MaintenancePriority } from "@/lib/hooks/useMaintenanceRequests";
 
 const PRIORITY_CONFIG: Record<MaintenancePriority, { label: string; classes: string }> = {
   LOW: { label: "Low", classes: "bg-gray-100 text-gray-600 border-gray-200" },
-  NORMAL: { label: "Normal", classes: "bg-blue-50 text-blue-700 border-blue-200" },
+  MEDIUM: { label: "Medium", classes: "bg-blue-50 text-blue-700 border-blue-200" },
   HIGH: { label: "High", classes: "bg-orange-50 text-orange-800 border-orange-200" },
   URGENT: { label: "Urgent", classes: "bg-red-50 text-red-700 border-red-200" },
   EMERGENCY: {
@@ -42,7 +42,7 @@ export function PriorityBadge({ priority, className }: PriorityBadgeProps) {
 
 export const PRIORITY_OPTIONS: { value: MaintenancePriority; label: string }[] = [
   { value: "LOW", label: "Low" },
-  { value: "NORMAL", label: "Normal" },
+  { value: "MEDIUM", label: "Medium" },
   { value: "HIGH", label: "High" },
   { value: "URGENT", label: "Urgent" },
   { value: "EMERGENCY", label: "Emergency" },
@@ -52,6 +52,6 @@ export const PRIORITY_SORT_ORDER: Record<MaintenancePriority, number> = {
   EMERGENCY: 0,
   URGENT: 1,
   HIGH: 2,
-  NORMAL: 3,
+  MEDIUM: 3,
   LOW: 4,
 };

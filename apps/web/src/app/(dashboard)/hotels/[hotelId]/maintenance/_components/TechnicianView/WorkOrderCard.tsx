@@ -107,7 +107,7 @@ export function WorkOrderCard({
 
         {/* Action buttons */}
         <div className="space-y-2 pt-1">
-          {status === "ASSIGNED" && (
+          {status === "ACKNOWLEDGED" && (
             <>
               <Button
                 className="w-full gap-1.5"

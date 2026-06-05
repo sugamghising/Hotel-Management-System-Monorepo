@@ -81,7 +81,7 @@ export function MyWorkQueue({
       <div>
         <h2 className="text-lg font-semibold">My Work Queue</h2>
         <p className="text-sm text-muted-foreground">
-          {active.filter((r) => r.status === "ASSIGNED").length} open{" \u00B7 "}
+          {active.filter((r) => r.status === "ACKNOWLEDGED").length} open{" \u00B7 "}
           {active.filter((r) => r.status === "IN_PROGRESS").length} in progress
         </p>
       </div>
