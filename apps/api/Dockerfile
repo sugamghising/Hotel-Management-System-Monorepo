@@ -61,9 +61,11 @@ RUN pnpm install --frozen-lockfile --prod --ignore-scripts && pnpm rebuild
 # Install tsx globally for path alias resolution at runtime
 RUN npm install -g tsx
 
-# Copy built artifacts from builder
+# Copy compiled API output
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
-COPY --from=builder /app/apps/api/src/generated/prisma ./apps/api/dist/generated/prisma
+# Copy API source (tsx uses it to resolve @/ path aliases from compiled output)
+COPY --from=builder /app/apps/api/src ./apps/api/src
+# Copy built workspace packages for runtime resolution
 COPY --from=builder /app/packages/schemas/dist ./packages/schemas/dist
 COPY --from=builder /app/packages/types/dist ./packages/types/dist
 
@@ -80,5 +82,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
 
-# Use tsx to run compiled server (handles tsconfig path aliases)
+# tsx resolves tsconfig path aliases from compiled output
 CMD ["tsx", "apps/api/dist/server.js"]
