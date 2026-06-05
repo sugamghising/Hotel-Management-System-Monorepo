@@ -2,26 +2,26 @@
   "name": "@hms/types",
   "version": "1.0.0",
   "private": true,
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "type-check": "tsc --noEmit -p tsconfig.json"
   },
   "exports": {
-    ".": "./src/index.ts",
-    "./auth": "./src/auth.ts",
-    "./reservations": "./src/reservations.ts",
-    "./guests": "./src/guests.ts",
-    "./rooms": "./src/rooms.ts",
-    "./hotel": "./src/hotel.ts",
-    "./hotels": "./src/hotel.ts",
-    "./folio": "./src/folio.ts",
-    "./folios": "./src/folio.ts",
-    "./roomTypes": "./src/roomTypes.ts",
-    "./room-types": "./src/roomTypes.ts",
-    "./ratePlans": "./src/ratePlans.ts",
-    "./rate-plans": "./src/ratePlans.ts"
+    ".": "./dist/index.js",
+    "./auth": "./dist/auth.js",
+    "./reservations": "./dist/reservations.js",
+    "./guests": "./dist/guests.js",
+    "./rooms": "./dist/rooms.js",
+    "./hotel": "./dist/hotel.js",
+    "./hotels": "./dist/hotel.js",
+    "./folio": "./dist/folio.js",
+    "./folios": "./dist/folio.js",
+    "./roomTypes": "./dist/roomTypes.js",
+    "./room-types": "./dist/roomTypes.js",
+    "./ratePlans": "./dist/ratePlans.js",
+    "./rate-plans": "./dist/ratePlans.js"
   },
   "devDependencies": {
     "typescript": "^5.4.0"
