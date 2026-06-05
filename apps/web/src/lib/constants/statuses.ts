@@ -130,25 +130,17 @@ export const HK_STATUS_MAP = {
 } as const;
 
 export const MAINTENANCE_STATUS_MAP = {
-  REPORTED: {
-    label: "Reported",
+  OPEN: {
+    label: "Open",
     color: "bg-red-50 text-red-700 border-red-200",
   },
-  ACKNOWLEDGED: {
-    label: "Acknowledged",
+  ASSIGNED: {
+    label: "Assigned",
     color: "bg-amber-50 text-amber-700 border-amber-200",
-  },
-  SCHEDULED: {
-    label: "Scheduled",
-    color: "bg-blue-50 text-blue-700 border-blue-200",
   },
   IN_PROGRESS: {
     label: "In Progress",
     color: "bg-indigo-50 text-indigo-700 border-indigo-200",
-  },
-  PENDING_PARTS: {
-    label: "Pending Parts",
-    color: "bg-orange-50 text-orange-700 border-orange-200",
   },
   COMPLETED: {
     label: "Completed",
@@ -157,6 +149,10 @@ export const MAINTENANCE_STATUS_MAP = {
   VERIFIED: {
     label: "Verified",
     color: "bg-slate-100 text-slate-500 border-slate-200",
+  },
+  ON_HOLD: {
+    label: "On Hold",
+    color: "bg-orange-50 text-orange-700 border-orange-200",
   },
   CANCELLED: {
     label: "Cancelled",
@@ -240,6 +236,9 @@ export const PERMISSIONS = {
     READ: "MAINTENANCE.READ",
     CREATE: "MAINTENANCE.CREATE",
     UPDATE: "MAINTENANCE.UPDATE",
+    ASSIGN: "MAINTENANCE.ASSIGN",
+    VERIFY: "MAINTENANCE.VERIFY",
+    VIEW_COSTS: "MAINTENANCE.VIEW_COSTS",
   },
   NIGHT_AUDIT: {
     RUN: "NIGHT_AUDIT.RUN",

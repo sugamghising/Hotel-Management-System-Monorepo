@@ -2,6 +2,7 @@ export * from "./useFolio";
 export * from "./useGuests";
 export * from "./useHotels";
 export * from "./useMaintenance";
+export * from "./useMaintenanceRequests";
 export * from "./useNightAudits";
 export * from "./usePermission";
 export * from "./useRatePlans";
