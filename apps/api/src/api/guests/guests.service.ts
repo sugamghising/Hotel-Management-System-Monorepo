@@ -223,6 +223,7 @@ export class GuestsService {
         guestType: g.guestType,
         companyName: g.companyName,
         totalStays: g.totalStays,
+        totalRevenue: g.totalRevenue,
         lastStayDate: g.lastStayDate,
         createdAt: g.createdAt,
       })),

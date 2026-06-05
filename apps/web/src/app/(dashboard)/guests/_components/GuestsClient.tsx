@@ -266,7 +266,7 @@ export default function GuestsClient() {
           const g = row.original;
           const revenue = g.totalRevenue;
           if (!revenue || revenue === 0) {
-            return <span className="text-sm text-muted-foreground">\u2014</span>;
+            return <span className="text-sm text-muted-foreground">{"\u2014"}</span>;
           }
           return (
             <span className="text-sm font-medium">

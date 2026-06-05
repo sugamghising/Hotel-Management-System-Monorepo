@@ -173,6 +173,10 @@ export class GuestsRepository {
       where.vipStatus = filters.vipStatus;
     }
 
+    if (filters?.vipOnly) {
+      where.vipStatus = { not: "NONE" };
+    }
+
     if (filters?.guestType) {
       where.guestType = filters.guestType;
     }

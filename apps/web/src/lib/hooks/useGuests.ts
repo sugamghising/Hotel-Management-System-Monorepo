@@ -274,7 +274,11 @@ export const useVipGuests = () => {
   const { organizationId, activeHotel } = useAuthStore();
   return useQuery({
     queryKey: GUEST_KEYS.vip(activeHotel?.id ?? ""),
-    queryFn: () => guestApi.vipList(organizationId!, activeHotel!.id),
+    queryFn: () =>
+      guestApi.list(organizationId!, {
+        vipOnly: true,
+        limit: 100,
+      }).then((r) => r.guests),
     enabled: !!organizationId && !!activeHotel,
   });
 };

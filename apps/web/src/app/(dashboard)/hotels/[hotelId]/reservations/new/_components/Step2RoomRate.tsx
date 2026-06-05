@@ -46,7 +46,7 @@ export function Step2RoomRate({
   const ratePlanId = watch("step2.ratePlanId");
   const roomId = watch("step2.roomId");
 
-  const { data: ratePlansData, isLoading: plansLoading } = useRatePlans({
+  const { data: ratePlansData, isLoading: plansLoading, isError: plansError } = useRatePlans({
     isActive: true,
   });
 
@@ -95,6 +95,10 @@ export function Step2RoomRate({
               <Skeleton key={i} className="h-20 rounded-lg" />
             ))}
           </div>
+        ) : plansError ? (
+          <p className="text-sm text-muted-foreground">Failed to load room types.</p>
+        ) : uniqueRoomTypes.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No room types available.</p>
         ) : (
           <div className="space-y-2">
             {uniqueRoomTypes.map((rt) => (
