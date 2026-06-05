@@ -69,8 +69,8 @@ COPY --from=builder /app/apps/api/src ./apps/api/src
 COPY --from=builder /app/packages/schemas/dist ./packages/schemas/dist
 COPY --from=builder /app/packages/types/dist ./packages/types/dist
 
-# Create logs directory and set ownership
-RUN mkdir -p logs && chown -R nodejs:nodejs .
+# Create logs directory and set ownership of writable paths only
+RUN mkdir -p logs && chown -R nodejs:nodejs logs
 
 # Switch to non-root user
 USER nodejs
@@ -82,5 +82,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
 
-# Run TypeScript source directly with tsx (natively resolves path aliases)
-CMD ["tsx", "apps/api/src/server.ts"]
+# Run TypeScript source directly with tsx (point to tsconfig for path alias resolution)
+CMD ["tsx", "--tsconfig", "apps/api/tsconfig.json", "apps/api/src/server.ts"]
