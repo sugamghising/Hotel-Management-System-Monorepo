@@ -82,5 +82,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
 
-# tsx resolves tsconfig path aliases from compiled output
-CMD ["tsx", "apps/api/dist/server.js"]
+# Run TypeScript source directly with tsx (natively resolves path aliases)
+CMD ["tsx", "apps/api/src/server.ts"]
