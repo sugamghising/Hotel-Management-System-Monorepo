@@ -21,14 +21,10 @@ RUN pnpm install --frozen-lockfile
 COPY packages/schemas/ packages/schemas/
 COPY packages/types/ packages/types/
 
-RUN pnpm --filter @hms/schemas build
-RUN pnpm --filter @hms/types build
+RUN pnpm --filter @hms/schemas build && \
+    pnpm --filter @hms/types build
 
-# Copy Prisma schema and generate client
-COPY apps/api/prisma apps/api/prisma/
-RUN cd apps/api && npx prisma generate
-
-# Copy API source and build
+# Copy API source (prisma schema, tsconfig, src, etc.) and build
 COPY apps/api/ apps/api/
 RUN cd apps/api && pnpm run build
 
@@ -55,7 +51,8 @@ COPY apps/api/package.json apps/api/
 COPY apps/api/tsconfig.json apps/api/
 
 # Install production dependencies
-RUN pnpm install --frozen-lockfile --prod
+# --ignore-scripts avoids husky prepare (no .git in Docker)
+RUN pnpm install --frozen-lockfile --prod --ignore-scripts && pnpm rebuild
 
 # Install tsx globally for path alias resolution at runtime
 RUN npm install -g tsx
