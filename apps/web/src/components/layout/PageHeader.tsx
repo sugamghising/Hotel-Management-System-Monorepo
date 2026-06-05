@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { ChevronRight } from "lucide-react";
 
@@ -22,12 +22,8 @@ export function PageHeader({
   breadcrumb,
   className,
 }: PageHeaderProps) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => { setMounted(true); }, []);
-
   return (
     <div className={cn("mb-6", className)}>
-      {/* Breadcrumb */}
       {breadcrumb && breadcrumb.length > 0 && (
         <nav className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
           {breadcrumb.map((item, index) => (
@@ -56,7 +52,6 @@ export function PageHeader({
         </nav>
       )}
 
-      {/* Title row */}
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
@@ -66,7 +61,7 @@ export function PageHeader({
             <p className="mt-0.5 text-sm text-muted-foreground">{subtitle}</p>
           )}
         </div>
-        {mounted && actions && (
+        {actions && (
           <div className="flex items-center gap-2 shrink-0">{actions}</div>
         )}
       </div>
