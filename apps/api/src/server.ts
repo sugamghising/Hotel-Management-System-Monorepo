@@ -13,13 +13,10 @@ const startServer = async (): Promise<void> => {
     startOutboxWorker();
     startMaintenanceScheduler();
 
-    const server = app.listen(config.server.port, config.server.host, () => {
-      logger.info(`🚀 Server running at http://${config.server.host}:${config.server.port}`);
+    const server = app.listen(config.server.port, () => {
+      logger.info(`🚀 Server running on port ${config.server.port}`);
       logger.info(`📖 Environment: ${config.env}`);
-      logger.info(
-        `🔗 API endpoint: http://${config.server.host}:${config.server.port}${config.api.fullPrefix}`
-      );
-      logger.info(`❤️  Health check: http://${config.server.host}:${config.server.port}/health`);
+      logger.info(`❤️  Health check: http://0.0.0.0:${config.server.port}/health`);
     });
 
     // Graceful shutdown
