@@ -29,8 +29,9 @@ RUN pnpm --filter @hms/schemas build && \
     pnpm --filter @hms/types build
 
 # Copy API source (prisma schema, tsconfig, src, etc.) and build
+# DATABASE_URL dummy required for Prisma 7 schema validation at build time
 COPY apps/api/ apps/api/
-RUN cd apps/api && pnpm run build
+RUN cd apps/api && DATABASE_URL=postgresql://p:p@localhost:5432/placeholder pnpm run build
 
 # Production stage
 FROM node:20-alpine AS production
@@ -72,7 +73,8 @@ COPY --from=builder /app/packages/schemas/dist ./packages/schemas/dist
 COPY --from=builder /app/packages/types/dist ./packages/types/dist
 
 # Regenerate Prisma client AFTER copying source (overwrites old generated files)
-RUN cd apps/api && pnpm exec prisma generate
+# DATABASE_URL dummy required for Prisma 7 schema validation at build time
+RUN cd apps/api && DATABASE_URL=postgresql://p:p@localhost:5432/placeholder pnpm exec prisma generate
 
 # Create logs directory and set ownership of writable paths only
 RUN mkdir -p logs && chown -R nodejs:nodejs logs
