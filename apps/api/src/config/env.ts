@@ -10,7 +10,7 @@ const envSchema = z.object({
 
   // Server
   PORT: z.string().transform(Number).default('3000'),
-  HOST: z.string().default('localhost'),
+  HOST: z.string().default('0.0.0.0'),
 
   // API
   API_PREFIX: z.string().default('/api'),
