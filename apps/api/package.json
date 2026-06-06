@@ -38,6 +38,7 @@
     "@asteasolutions/zod-to-openapi": "^7.3.4",
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
+    "@prisma/client-runtime-utils": "^7.3.0",
     "@hms/schemas": "workspace:*",
     "@hms/types": "workspace:*",
     "bcrypt": "^6.0.0",
