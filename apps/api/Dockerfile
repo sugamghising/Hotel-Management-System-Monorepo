@@ -54,10 +54,13 @@ COPY packages/schemas/package.json packages/schemas/
 COPY packages/types/package.json packages/types/
 COPY apps/api/package.json apps/api/
 COPY apps/api/tsconfig.json apps/api/
+COPY apps/api/prisma/ apps/api/prisma/
 
 # Install production dependencies
 # --ignore-scripts avoids husky prepare (no .git in Docker)
 RUN pnpm install --frozen-lockfile --prod --ignore-scripts && pnpm rebuild
+# Regenerate Prisma client so @prisma/client-runtime-utils is linked correctly
+RUN cd apps/api && npx prisma generate
 
 # Install tsx globally for path alias resolution at runtime
 RUN npm install -g tsx
