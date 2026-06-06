@@ -6,7 +6,6 @@ RUN apk add --no-cache openssl
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
-ENV DATABASE_URL=postgresql://p:p@localhost:5432/placeholder
 
 # Copy workspace root config for dependency resolution
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
@@ -42,7 +41,6 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 ENV NODE_ENV=production
-ENV DATABASE_URL=postgresql://p:p@localhost:5432/placeholder
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
@@ -89,5 +87,10 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
 
-# Apply pending Prisma migrations, then run server
-CMD cd apps/api && pnpm exec prisma migrate deploy && tsx --tsconfig tsconfig.json src/server.ts
+# Inject url line into schema at runtime (Prisma 7 requires it for migrate deploy),
+# run pending migrations, then start the server
+CMD cd apps/api && \
+    awk 'NR==15{print "  url      = env(\"DATABASE_URL\")"}1' prisma/schema.prisma > /tmp/schema.prisma && \
+    pnpm exec prisma migrate deploy --schema /tmp/schema.prisma && \
+    rm /tmp/schema.prisma && \
+    tsx --tsconfig tsconfig.json src/server.ts
