@@ -59,8 +59,6 @@ COPY apps/api/prisma/ apps/api/prisma/
 # Install production dependencies
 # --ignore-scripts avoids husky prepare (no .git in Docker)
 RUN pnpm install --frozen-lockfile --prod --ignore-scripts && pnpm rebuild
-# Regenerate Prisma client so @prisma/client-runtime-utils is linked correctly
-RUN cd apps/api && npx prisma generate
 
 # Install tsx globally for path alias resolution at runtime
 RUN npm install -g tsx
@@ -72,6 +70,9 @@ COPY --from=builder /app/apps/api/src ./apps/api/src
 # Copy built workspace packages for runtime resolution
 COPY --from=builder /app/packages/schemas/dist ./packages/schemas/dist
 COPY --from=builder /app/packages/types/dist ./packages/types/dist
+
+# Regenerate Prisma client AFTER copying source (overwrites old generated files)
+RUN cd apps/api && pnpm exec prisma generate
 
 # Create logs directory and set ownership of writable paths only
 RUN mkdir -p logs && chown -R nodejs:nodejs logs
