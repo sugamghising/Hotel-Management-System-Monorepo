@@ -6,6 +6,7 @@ RUN apk add --no-cache openssl
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
+ENV DATABASE_URL=postgresql://p:p@localhost:5432/placeholder
 
 # Copy workspace root config for dependency resolution
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
@@ -29,9 +30,8 @@ RUN pnpm --filter @hms/schemas build && \
     pnpm --filter @hms/types build
 
 # Copy API source (prisma schema, tsconfig, src, etc.) and build
-# DATABASE_URL dummy required for Prisma 7 schema validation at build time
 COPY apps/api/ apps/api/
-RUN cd apps/api && DATABASE_URL=postgresql://p:p@localhost:5432/placeholder pnpm run build
+RUN cd apps/api && pnpm run build
 
 # Production stage
 FROM node:20-alpine AS production
@@ -42,6 +42,7 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 ENV NODE_ENV=production
+ENV DATABASE_URL=postgresql://p:p@localhost:5432/placeholder
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
@@ -73,8 +74,7 @@ COPY --from=builder /app/packages/schemas/dist ./packages/schemas/dist
 COPY --from=builder /app/packages/types/dist ./packages/types/dist
 
 # Regenerate Prisma client AFTER copying source (overwrites old generated files)
-# DATABASE_URL dummy required for Prisma 7 schema validation at build time
-RUN cd apps/api && DATABASE_URL=postgresql://p:p@localhost:5432/placeholder pnpm exec prisma generate
+RUN cd apps/api && pnpm exec prisma generate
 
 # Create logs directory and set ownership of writable paths only
 RUN mkdir -p logs && chown -R nodejs:nodejs logs
