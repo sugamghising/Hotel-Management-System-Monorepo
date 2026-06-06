@@ -87,5 +87,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
 
-# Run TypeScript source directly with tsx (point to tsconfig for path alias resolution)
-CMD ["tsx", "--tsconfig", "apps/api/tsconfig.json", "apps/api/src/server.ts"]
+# Apply pending Prisma migrations, then run server
+CMD cd apps/api && pnpm exec prisma migrate deploy && tsx --tsconfig tsconfig.json src/server.ts
