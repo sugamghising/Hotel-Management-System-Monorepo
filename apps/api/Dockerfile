@@ -49,8 +49,9 @@ RUN addgroup -g 1001 -S nodejs && \
 # Copy workspace root config
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 
-# Copy package manifests for production install
-COPY packages/schemas/package.json packages/types/package.json ./packages/
+# Copy package manifests for production install (each to its own directory)
+COPY packages/schemas/package.json packages/schemas/
+COPY packages/types/package.json packages/types/
 COPY apps/api/package.json apps/api/
 COPY apps/api/tsconfig.json apps/api/
 
