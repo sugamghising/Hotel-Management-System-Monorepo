@@ -9,7 +9,10 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 
   // Server
-  PORT: z.string().transform(Number).default('3000'),
+  PORT: z.string().default('3000').transform((v) => {
+    const n = Number(v);
+    return Number.isFinite(n) && n > 0 ? n : 3000;
+  }),
   HOST: z.string().default('0.0.0.0'),
 
   // API
