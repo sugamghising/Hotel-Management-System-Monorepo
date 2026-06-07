@@ -287,6 +287,7 @@ export const PERMISSIONS = {
     READ: "RATE_PLAN.READ",
     CREATE: "RATE_PLAN.CREATE",
     UPDATE: "RATE_PLAN.UPDATE",
+    DELETE: "RATE_PLAN.DELETE",
   },
 } as const;
 

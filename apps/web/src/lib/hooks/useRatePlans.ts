@@ -359,6 +359,87 @@ export const useDeleteRateOverride = () => {
   });
 };
 
+export interface CreateRatePlanInput {
+  code: string;
+  name: string;
+  description?: string;
+  roomTypeId: string;
+  pricingType?: PricingType;
+  baseRate: number;
+  currencyCode?: string;
+  minAdvanceDays?: number;
+  maxAdvanceDays?: number;
+  minStay?: number;
+  maxStay?: number;
+  isRefundable?: boolean;
+  cancellationPolicy?: CancellationPolicy;
+  isPublic?: boolean;
+  channelCodes?: string[];
+  mealPlan?: MealPlan;
+  includedAmenities?: string[];
+  validFrom?: string | null;
+  validUntil?: string | null;
+}
+
+const ratePlanMutations = {
+  create: (orgId: string, hotelId: string, input: CreateRatePlanInput) =>
+    apiClient
+      .post<{ data: { ratePlan: RatePlan } }>(`/organizations/${orgId}/hotels/${hotelId}/rate-plans`, input)
+      .then((r) => r.data.data.ratePlan),
+
+  update: (orgId: string, hotelId: string, id: string, input: Partial<CreateRatePlanInput>) =>
+    apiClient
+      .put<{ data: { ratePlan: RatePlan } }>(`/organizations/${orgId}/hotels/${hotelId}/rate-plans/${id}`, input)
+      .then((r) => r.data.data.ratePlan),
+
+  delete: (orgId: string, hotelId: string, id: string) =>
+    apiClient
+      .delete(`/organizations/${orgId}/hotels/${hotelId}/rate-plans/${id}`)
+      .then((r) => r.data),
+};
+
+export const useCreateRatePlan = () => {
+  const qc = useQueryClient();
+  const { organizationId, activeHotel } = useAuthStore();
+  return useMutation({
+    mutationFn: (input: CreateRatePlanInput) =>
+      ratePlanMutations.create(organizationId!, activeHotel!.id, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: RATE_PLAN_KEYS.lists(activeHotel!.id) });
+      toast.success("Rate plan created");
+    },
+    onError: (err: Error) => toast.error(err.message ?? "Failed to create rate plan"),
+  });
+};
+
+export const useUpdateRatePlan = () => {
+  const qc = useQueryClient();
+  const { organizationId, activeHotel } = useAuthStore();
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: Partial<CreateRatePlanInput> }) =>
+      ratePlanMutations.update(organizationId!, activeHotel!.id, id, input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: RATE_PLAN_KEYS.lists(activeHotel!.id) });
+      toast.success("Rate plan updated");
+    },
+    onError: (err: Error) => toast.error(err.message ?? "Failed to update rate plan"),
+  });
+};
+
+export const useDeleteRatePlan = () => {
+  const qc = useQueryClient();
+  const { organizationId, activeHotel } = useAuthStore();
+  return useMutation({
+    mutationFn: (id: string) =>
+      ratePlanMutations.delete(organizationId!, activeHotel!.id, id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: RATE_PLAN_KEYS.lists(activeHotel!.id) });
+      toast.success("Rate plan deleted");
+    },
+    onError: (err: Error) => toast.error(err.message ?? "Failed to delete rate plan"),
+  });
+};
+
 export const useCloneRatePlan = () => {
   const qc = useQueryClient();
   const { organizationId, activeHotel } = useAuthStore();
