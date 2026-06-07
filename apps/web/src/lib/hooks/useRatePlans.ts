@@ -63,6 +63,7 @@ export interface RatePlanListItem {
   isPublic: boolean;
   validFrom: string | null;
   validUntil: string | null;
+  stats?: { bookingsCount: number; totalRevenue: number; averageRate: number };
 }
 
 export interface RatePlanListResponse {
@@ -325,6 +326,7 @@ export const useUpdateRateOverride = () => {
       ratePlanApi.updateOverride(organizationId!, activeHotel!.id, id, input),
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: RATE_PLAN_KEYS.detail(id) });
+      qc.invalidateQueries({ queryKey: ["ratePlans", "calendar", id] });
       toast.success("Rate override saved");
     },
     onError: (err: Error) => toast.error(err.message ?? "Override failed"),
@@ -339,6 +341,7 @@ export const useBulkRateOverride = () => {
       ratePlanApi.bulkOverride(organizationId!, activeHotel!.id, id, input),
     onSuccess: (data, { id }) => {
       qc.invalidateQueries({ queryKey: RATE_PLAN_KEYS.detail(id) });
+      qc.invalidateQueries({ queryKey: ["ratePlans", "calendar", id] });
       toast.success(`Updated ${data.updatedCount} days`);
     },
     onError: (err: Error) => toast.error(err.message ?? "Bulk override failed"),
@@ -353,6 +356,7 @@ export const useDeleteRateOverride = () => {
       ratePlanApi.deleteOverride(organizationId!, activeHotel!.id, id, date),
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: RATE_PLAN_KEYS.detail(id) });
+      qc.invalidateQueries({ queryKey: ["ratePlans", "calendar", id] });
       toast.success("Override removed");
     },
     onError: (err: Error) => toast.error(err.message ?? "Delete failed"),
@@ -379,6 +383,7 @@ export interface CreateRatePlanInput {
   includedAmenities?: string[];
   validFrom?: string | null;
   validUntil?: string | null;
+  isActive?: boolean;
 }
 
 const ratePlanMutations = {
@@ -418,8 +423,9 @@ export const useUpdateRatePlan = () => {
   return useMutation({
     mutationFn: ({ id, input }: { id: string; input: Partial<CreateRatePlanInput> }) =>
       ratePlanMutations.update(organizationId!, activeHotel!.id, id, input),
-    onSuccess: () => {
+    onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: RATE_PLAN_KEYS.lists(activeHotel!.id) });
+      qc.invalidateQueries({ queryKey: RATE_PLAN_KEYS.detail(id) });
       toast.success("Rate plan updated");
     },
     onError: (err: Error) => toast.error(err.message ?? "Failed to update rate plan"),

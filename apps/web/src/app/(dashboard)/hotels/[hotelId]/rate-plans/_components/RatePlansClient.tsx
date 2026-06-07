@@ -141,7 +141,7 @@ export default function RatePlansClient() {
     if (!selectedPlanId || !fullPlan) return;
     updatePlan.mutate({
       id: selectedPlanId,
-      input: { ...fullPlan, isActive: !fullPlan.validity.isActive } as any,
+      input: { isActive: !fullPlan.validity.isActive },
     });
   }, [selectedPlanId, fullPlan, updatePlan]);
 
@@ -161,7 +161,7 @@ export default function RatePlansClient() {
 
   const hasActiveBookings = useCallback(
     (planId: string) => {
-      return ((plans?.find((p) => p.id === planId) as any)?.stats?.bookingsCount ?? 0) > 0;
+      return (plans?.find((p) => p.id === planId)?.stats?.bookingsCount ?? 0) > 0;
     },
     [plans],
   );

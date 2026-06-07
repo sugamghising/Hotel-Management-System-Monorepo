@@ -424,7 +424,6 @@ export function EditRatePlanDialog({
                 checked={plan.validity.isActive}
                 onCheckedChange={() => {
                   onToggleActive();
-                  onClose();
                 }}
               />
               <span className="text-xs text-muted-foreground">

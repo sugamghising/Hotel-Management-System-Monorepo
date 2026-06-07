@@ -90,7 +90,7 @@ export function RatePlanSidebar({
     const set = new Set<string>();
     if (!plans) return set;
     plans.forEach((p) => {
-      if ((p as any).stats?.bookingsCount > 0) set.add(p.id);
+      if ((p.stats?.bookingsCount ?? 0) > 0) set.add(p.id);
     });
     return set;
   }, [plans]);

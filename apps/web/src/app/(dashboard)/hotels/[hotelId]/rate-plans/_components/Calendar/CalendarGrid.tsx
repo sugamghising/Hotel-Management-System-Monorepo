@@ -7,11 +7,10 @@ import {
   getDaysInMonth,
   startOfMonth,
   endOfMonth,
-  eachDayOfInterval,
   getDay,
-  isSameDay,
 } from "date-fns";
 import { CalendarCell } from "./CalendarCell";
+import { cn } from "@/lib/utils";
 import type { RateCalendarDay, RateCalendarResponse } from "@/lib/hooks/useRatePlans";
 
 interface CalendarGridProps {
@@ -165,8 +164,4 @@ export function CalendarGrid({
       </div>
     </div>
   );
-}
-
-function cn(...inputs: any[]) {
-  return inputs.filter(Boolean).join(" ");
 }
