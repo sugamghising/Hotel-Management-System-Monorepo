@@ -7,6 +7,8 @@ export * from "./useNightAudits";
 export * from "./usePermission";
 export * from "./useRatePlans";
 export * from "./useRooms";
+export * from "./useUsers";
+export * from "./useRoles";
 export * from "./useReservations";
 
 export {
