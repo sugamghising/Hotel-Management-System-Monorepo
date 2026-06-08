@@ -5,3 +5,4 @@ export { hotelsApi } from "./modules/hotels";
 export { guestsApi } from "./modules/guests";
 export { reservationsApi } from "./modules/reservations";
 export { roomsApi } from "./modules/rooms";
+export { posApi } from "./modules/pos";
