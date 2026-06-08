@@ -18,6 +18,7 @@ import { UserPermissionsSection } from "./UserPermissionsSection";
 import {
   useUser,
   useUserPermissions,
+  useRemoveUserRole,
 } from "@/lib/hooks/useUsers";
 import { usePermission } from "@/lib/hooks/usePermission";
 import { useAuthStore } from "@/stores/auth.store";
@@ -60,6 +61,7 @@ export function UserDetailSheet({
   const canResetPassword = usePermission("USER.RESET_PASSWORD");
   const canManageRoles = usePermission("USER.ASSIGN_ROLE");
   const canViewPerms = usePermission("RBAC.VIEW_PERMISSIONS");
+  const { mutate: removeRole } = useRemoveUserRole();
 
   const isSelf = userId === currentUser?.id;
 
@@ -127,7 +129,11 @@ export function UserDetailSheet({
                 user={user}
                 canManageRoles={canManageRoles}
                 onAddRole={() => onAssignRole(user.id)}
-                onRemoveRole={(roleId) => {}}
+                onRemoveRole={(roleId) => removeRole({ userId: user.id, roleId })}
+                onViewPermissions={() => {
+                  const el = document.getElementById("permissions-section");
+                  el?.scrollIntoView({ behavior: "smooth" });
+                }}
               />
               <UserActivitySection
                 user={user}
@@ -136,10 +142,12 @@ export function UserDetailSheet({
                 onResetPassword={() => onResetPassword(user.id)}
               />
               {canViewPerms && (
-                <UserPermissionsSection
-                  permissions={permData?.permissions}
-                  isLoading={permLoading}
-                />
+                <div id="permissions-section">
+                  <UserPermissionsSection
+                    permissions={permData?.permissions}
+                    isLoading={permLoading}
+                  />
+                </div>
               )}
             </div>
 

@@ -12,6 +12,7 @@ interface UserRolesSectionProps {
   canManageRoles: boolean;
   onAddRole: () => void;
   onRemoveRole: (roleId: string) => void;
+  onViewPermissions?: () => void;
 }
 
 export function UserRolesSection({
@@ -19,6 +20,7 @@ export function UserRolesSection({
   canManageRoles,
   onAddRole,
   onRemoveRole,
+  onViewPermissions,
 }: UserRolesSectionProps) {
   const orgWideRoles = user.roles.filter((r) => !r.hotelId);
   const hotelRoles = user.roles.filter((r) => r.hotelId);
@@ -115,7 +117,10 @@ export function UserRolesSection({
         </div>
       )}
 
-      <button className="text-xs text-primary mt-2 hover:underline">
+      <button
+        className="text-xs text-primary mt-2 hover:underline"
+        onClick={onViewPermissions}
+      >
         View effective permissions →
       </button>
       <Separator className="my-4" />

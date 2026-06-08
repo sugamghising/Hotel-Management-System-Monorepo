@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useAuthStore } from "@/stores/auth.store";
 import { usePermission } from "@/lib/hooks/usePermission";
-import { useUsers, useActivateUser } from "@/lib/hooks/useUsers";
+import { useUsers, useUser, useActivateUser } from "@/lib/hooks/useUsers";
 import { useHotels } from "@/lib/hooks/useHotels";
 import { Button } from "@/components/ui/button";
 import { UserFilters } from "./UserFilters";
@@ -114,6 +114,8 @@ export default function UsersClient() {
 
   const selectedUser = users?.find((u) => u.id === selectedUserId);
 
+  const { data: editUserDetail } = useUser(editUserId);
+
   const handleViewProfile = useCallback(
     (id: string) => {
       const params = new URLSearchParams(searchParams.toString());
@@ -153,7 +155,9 @@ export default function UsersClient() {
 
   const handleReactivate = useCallback(
     (id: string) => {
-      activateUser(id);
+      if (window.confirm("Are you sure you want to reactivate this user?")) {
+        activateUser(id);
+      }
     },
     [activateUser],
   );
@@ -235,7 +239,7 @@ export default function UsersClient() {
 
       {editOpen && editUserId && (
         <EditUserDialog
-          user={users?.find((u) => u.id === editUserId) as any}
+          user={editUserDetail}
           open={editOpen}
           onClose={() => {
             setEditOpen(false);

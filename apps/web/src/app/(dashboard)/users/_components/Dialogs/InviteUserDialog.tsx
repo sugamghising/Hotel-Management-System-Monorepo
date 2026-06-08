@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { useInviteUser } from "@/lib/hooks/useUsers";
 import { useRoles } from "@/lib/hooks/useRoles";
+import { useHotels } from "@/lib/hooks/useHotels";
 import type { InviteUserInput } from "@/lib/hooks/useUsers";
 
 interface InviteUserDialogProps {
@@ -31,6 +32,7 @@ interface InviteUserDialogProps {
 export function InviteUserDialog({ open, onClose }: InviteUserDialogProps) {
   const { mutate: inviteUser, isPending } = useInviteUser();
   const { data: rolesData } = useRoles();
+  const { data: hotelsData } = useHotels();
 
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -76,6 +78,7 @@ export function InviteUserDialog({ open, onClose }: InviteUserDialogProps) {
 
   const isValid = email && firstName && lastName;
   const roles = rolesData?.roles ?? [];
+  const hotels = hotelsData?.hotels ?? [];
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -195,6 +198,11 @@ export function InviteUserDialog({ open, onClose }: InviteUserDialogProps) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="org">Organization-wide</SelectItem>
+                    {hotels.map((hotel) => (
+                      <SelectItem key={hotel.id} value={hotel.id}>
+                        {hotel.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
