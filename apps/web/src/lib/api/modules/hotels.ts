@@ -54,4 +54,23 @@ export const hotelsApi = {
     );
     return data.data.dashboard;
   },
+
+  update: async (
+    orgId: string,
+    hotelId: string,
+    input: Record<string, unknown>,
+  ): Promise<void> => {
+    await apiClient.patch(`/organizations/${orgId}/hotels/${hotelId}`, input);
+  },
+
+  updateSettings: async (
+    orgId: string,
+    hotelId: string,
+    input: Record<string, unknown>,
+  ): Promise<void> => {
+    await apiClient.patch(
+      `/organizations/${orgId}/hotels/${hotelId}/settings`,
+      input,
+    );
+  },
 };
