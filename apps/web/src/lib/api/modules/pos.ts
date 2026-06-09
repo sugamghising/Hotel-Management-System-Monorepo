@@ -155,6 +155,24 @@ export const posApi = {
     );
   },
 
+  updateItem: async (
+    orgId: string,
+    hotelId: string,
+    orderId: string,
+    itemId: string,
+    input: {
+      quantity?: number;
+      unitPrice?: number;
+      modifications?: string;
+      specialInstructions?: string;
+    },
+  ): Promise<void> => {
+    await apiClient.patch(
+      `/organizations/${orgId}/hotels/${hotelId}/pos/orders/${orderId}/items/${itemId}`,
+      input,
+    );
+  },
+
   voidItem: async (
     orgId: string,
     hotelId: string,

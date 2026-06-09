@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { formatTime } from "@/lib/utils/formatters";
 import { formatCurrency } from "@/lib/utils/formatters";
-import { Coffee, Table2, DoorOpen, Receipt } from "lucide-react";
+import { Table2, DoorOpen, Receipt } from "lucide-react";
 import type { POSOrderListItem, POSOrderStatus } from "@/lib/hooks/usePOS";
 
 const STATUS_CONFIG: Record<POSOrderStatus, { label: string; color: string }> = {

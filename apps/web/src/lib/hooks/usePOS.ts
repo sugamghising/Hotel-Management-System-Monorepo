@@ -177,7 +177,7 @@ export const useCreatePOSOrder = () => {
       qc.invalidateQueries({ queryKey: POS_KEYS.orders(hotelId) });
       toast.success(`Order #${data.orderNumber} opened`);
     },
-    onError: (err: Error) => toast.error(err.message ?? "Failed to create order"),
+    onError: (err: Error) => toast.error(err.message || "Failed to create order"),
   });
 };
 
@@ -193,7 +193,33 @@ export const useAddPOSItem = () => {
       qc.invalidateQueries({ queryKey: POS_KEYS.order(hotelId, orderId) });
       qc.invalidateQueries({ queryKey: POS_KEYS.orders(hotelId) });
     },
-    onError: (err: Error) => toast.error(err.message ?? "Failed to add item"),
+    onError: (err: Error) => toast.error(err.message || "Failed to add item"),
+  });
+};
+
+export const useUpdatePOSItem = () => {
+  const qc = useQueryClient();
+  const { orgId, hotelId } = useCtx();
+  return useMutation({
+    mutationFn: ({
+      orderId,
+      itemId,
+      input,
+    }: {
+      orderId: string;
+      itemId: string;
+      input: {
+        quantity?: number;
+        unitPrice?: number;
+        modifications?: string;
+        specialInstructions?: string;
+      };
+    }) => posApi.updateItem(orgId, hotelId, orderId, itemId, input),
+    onSuccess: (_, { orderId }) => {
+      qc.invalidateQueries({ queryKey: POS_KEYS.order(hotelId, orderId) });
+      qc.invalidateQueries({ queryKey: POS_KEYS.orders(hotelId) });
+    },
+    onError: (err: Error) => toast.error(err.message || "Failed to update item"),
   });
 };
 
@@ -208,7 +234,7 @@ export const useVoidPOSItem = () => {
       qc.invalidateQueries({ queryKey: POS_KEYS.orders(hotelId) });
       toast.success("Item removed");
     },
-    onError: (err: Error) => toast.error(err.message ?? "Failed to remove item"),
+    onError: (err: Error) => toast.error(err.message || "Failed to remove item"),
   });
 };
 
@@ -222,7 +248,7 @@ export const useUpdatePOSOrder = () => {
       qc.invalidateQueries({ queryKey: POS_KEYS.order(hotelId, orderId) });
       qc.invalidateQueries({ queryKey: POS_KEYS.orders(hotelId) });
     },
-    onError: (err: Error) => toast.error(err.message ?? "Failed to update order"),
+    onError: (err: Error) => toast.error(err.message || "Failed to update order"),
   });
 };
 
@@ -232,11 +258,12 @@ export const useVoidPOSOrder = () => {
   return useMutation({
     mutationFn: (orderId: string) =>
       posApi.voidOrder(orgId, hotelId, orderId),
-    onSuccess: () => {
+    onSuccess: (_data, orderId) => {
       qc.invalidateQueries({ queryKey: POS_KEYS.orders(hotelId) });
+      qc.invalidateQueries({ queryKey: POS_KEYS.order(hotelId, orderId) });
       toast.success("Order voided");
     },
-    onError: (err: Error) => toast.error(err.message ?? "Failed to void order"),
+    onError: (err: Error) => toast.error(err.message || "Failed to void order"),
   });
 };
 
@@ -251,7 +278,7 @@ export const useProcessPOSPayment = () => {
       qc.invalidateQueries({ queryKey: POS_KEYS.order(hotelId, orderId) });
       toast.success("Payment processed");
     },
-    onError: (err: Error) => toast.error(err.message ?? "Payment failed"),
+    onError: (err: Error) => toast.error(err.message || "Payment failed"),
   });
 };
 
@@ -266,6 +293,6 @@ export const usePostPOSToRoom = () => {
       qc.invalidateQueries({ queryKey: POS_KEYS.order(hotelId, orderId) });
       toast.success("Charges posted to room");
     },
-    onError: (err: Error) => toast.error(err.message ?? "Failed to post to room"),
+    onError: (err: Error) => toast.error(err.message || "Failed to post to room"),
   });
 };

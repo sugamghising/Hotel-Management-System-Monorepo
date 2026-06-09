@@ -83,6 +83,10 @@ export function AddItemSection({
       itemName: item.name,
       quantity: 1,
       unitPrice: item.price,
+    }, {
+      onSuccess: () => {
+        setSearch("");
+      },
     });
   };
 

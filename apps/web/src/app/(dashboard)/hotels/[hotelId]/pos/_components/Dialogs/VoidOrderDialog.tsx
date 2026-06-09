@@ -9,21 +9,24 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
+import { formatCurrency } from "@/lib/utils/formatters";
 import { useVoidPOSOrder, usePOSOrder } from "@/lib/hooks/usePOS";
 
 interface VoidOrderDialogProps {
   orderId: string | null;
   open: boolean;
   onClose: () => void;
+  onVoidSuccess?: () => void;
+  currencyCode?: string;
 }
 
-export function VoidOrderDialog({ orderId, open, onClose }: VoidOrderDialogProps) {
+export function VoidOrderDialog({ orderId, open, onClose, onVoidSuccess, currencyCode = "USD" }: VoidOrderDialogProps) {
   const { data: order } = usePOSOrder(orderId);
   const { mutate: voidOrder, isPending } = useVoidPOSOrder();
 
   const handleConfirm = () => {
     if (!orderId) return;
-    voidOrder(orderId, { onSuccess: () => onClose() });
+    voidOrder(orderId, { onSuccess: () => { onVoidSuccess?.(); onClose(); } });
   };
 
   return (
@@ -39,7 +42,7 @@ export function VoidOrderDialog({ orderId, open, onClose }: VoidOrderDialogProps
         <div className="py-2">
           <p className="text-sm">
             This will void <strong>#{order?.orderNumber}</strong> (total:{" "}
-            <strong>${order?.total.toFixed(2)}</strong>).
+            <strong>{formatCurrency(order?.total ?? 0, currencyCode)}</strong>).
           </p>
           <p className="text-sm text-muted-foreground mt-2">
             This action cannot be undone.

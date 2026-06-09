@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useAuthStore } from "@/stores/auth.store";
 import { usePermission } from "@/lib/hooks/usePermission";
-import { usePOSOrders } from "@/lib/hooks/usePOS";
+import { usePOSOrders, useVoidPOSOrder } from "@/lib/hooks/usePOS";
 import { Separator } from "@/components/ui/separator";
 import { OrderListPanel } from "./OrderList/OrderListPanel";
 import { OrderDetailPanel } from "./OrderDetail/OrderDetailPanel";
@@ -134,11 +134,12 @@ export default function POSClient() {
     setPostToRoomOpen(true);
   }, []);
 
+  const { mutate: voidOrder } = useVoidPOSOrder();
+
   const handleVoidOrder = useCallback((id: string) => {
     setVoidOrderId(id);
     setVoidOrderOpen(true);
-    handleCloseOrder();
-  }, [handleCloseOrder]);
+  }, []);
 
   const handleAddCustomItem = useCallback((orderId: string) => {
     setCustomItemOrderId(orderId);
@@ -224,14 +225,18 @@ export default function POSClient() {
         orderId={voidOrderId}
         open={voidOrderOpen}
         onClose={() => { setVoidOrderOpen(false); setVoidOrderId(null); }}
+        onVoidSuccess={() => handleCloseOrder()}
+        currencyCode={currencyCode}
       />
 
-      <VoidItemDialog
-        orderId={voidItemOrderId ?? ""}
-        item={voidItem!}
-        open={voidItemOpen}
-        onClose={() => { setVoidItemOpen(false); setVoidItemOrderId(null); setVoidItem(null); }}
-      />
+      {voidItemOpen && voidItem && (
+        <VoidItemDialog
+          orderId={voidItemOrderId ?? ""}
+          item={voidItem}
+          open={voidItemOpen}
+          onClose={() => { setVoidItemOpen(false); setVoidItemOrderId(null); setVoidItem(null); }}
+        />
+      )}
 
       <AddMenuItemDialog
         orderId={customItemOrderId ?? ""}

@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/formatters";
 import { Plus, Minus, X, Utensils } from "lucide-react";
-import { useAddPOSItem, useVoidPOSItem } from "@/lib/hooks/usePOS";
+import { useAddPOSItem, useVoidPOSItem, useUpdatePOSItem } from "@/lib/hooks/usePOS";
 import type { POSOrderItem, POSMenuItem } from "@/lib/hooks/usePOS";
 
 interface OrderItemsTableProps {
@@ -19,6 +19,7 @@ interface OrderItemsTableProps {
 export function OrderItemsTable({ items, status, orderId, canEdit }: OrderItemsTableProps) {
   const { mutate: addItem } = useAddPOSItem();
   const { mutate: voidItem } = useVoidPOSItem();
+  const { mutate: updateItem } = useUpdatePOSItem();
 
   const nonVoided = items.filter((i) => !i.isVoided);
   const voided = items.filter((i) => i.isVoided);
@@ -38,7 +39,7 @@ export function OrderItemsTable({ items, status, orderId, canEdit }: OrderItemsT
     if (item.quantity <= 1) {
       voidItem({ orderId, itemId: item.id });
     } else {
-      voidItem({ orderId, itemId: item.id, reason: "Quantity reduced" });
+      updateItem({ orderId, itemId: item.id, input: { quantity: item.quantity - 1 } });
     }
   };
 

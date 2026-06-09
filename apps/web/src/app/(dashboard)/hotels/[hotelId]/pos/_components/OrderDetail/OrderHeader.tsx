@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { formatDate, formatTime } from "@/lib/utils/formatters";
+import { formatTime } from "@/lib/utils/formatters";
 import { MoreHorizontal, Table2, DoorOpen, User } from "lucide-react";
 import { useUpdatePOSOrder } from "@/lib/hooks/usePOS";
 import type { POSOrder } from "@/lib/hooks/usePOS";
