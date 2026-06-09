@@ -30,7 +30,9 @@ const otherCountries = Object.keys(countryNames).filter((c) => !commonCountries.
 
 export function ContactTab({ hotel, canEdit }: ContactTabProps) {
   const { mutate: saveContact, isPending: contactPending } = useUpdateHotelGeneral();
-  const { mutate: saveAddress, isPending: addressPending } = useUpdateHotelAddress();
+  const { mutate: saveAddress } = useUpdateHotelAddress();
+  const [addressPending, setAddressPending] = useState(false);
+  const [locationPending, setLocationPending] = useState(false);
 
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -51,29 +53,27 @@ export function ContactTab({ hotel, canEdit }: ContactTabProps) {
   const [timezone, setTimezone] = useState("");
   const [locationSaved, setLocationSaved] = useState(false);
 
-  const h = hotel as any;
-
   useEffect(() => {
     setEmail(hotel.contact?.email ?? "");
     setPhone(hotel.contact?.phone ?? "");
-    setFax(h.contact?.fax ?? "");
+    setFax(hotel.contact?.fax ?? "");
     setWebsite(hotel.contact?.website ?? "");
   }, [hotel]);
 
   useEffect(() => {
-    setAddressLine1(h.address?.line1 ?? "");
-    setAddressLine2(h.address?.line2 ?? "");
-    setCity(h.address?.city ?? "");
-    setStateProvince(h.address?.stateProvince ?? "");
-    setPostalCode(h.address?.postalCode ?? "");
+    setAddressLine1(hotel.address?.line1 ?? "");
+    setAddressLine2(hotel.address?.line2 ?? "");
+    setCity(hotel.address?.city ?? "");
+    setStateProvince(hotel.address?.stateProvince ?? "");
+    setPostalCode(hotel.address?.postalCode ?? "");
     setCountryCode(hotel.countryCode ?? "");
-  }, [hotel, h]);
+  }, [hotel]);
 
   useEffect(() => {
-    setLatitude(h.location?.latitude != null ? String(h.location.latitude) : "");
-    setLongitude(h.location?.longitude != null ? String(h.location.longitude) : "");
+    setLatitude(hotel.location?.latitude != null ? String(hotel.location.latitude) : "");
+    setLongitude(hotel.location?.longitude != null ? String(hotel.location.longitude) : "");
     setTimezone(hotel.timezone ?? "UTC");
-  }, [hotel, h]);
+  }, [hotel]);
 
   const handleSaveContact = () => {
     saveContact(
@@ -83,6 +83,7 @@ export function ContactTab({ hotel, canEdit }: ContactTabProps) {
   };
 
   const handleSaveAddress = () => {
+    setAddressPending(true);
     saveAddress(
       {
         input: {
@@ -94,11 +95,15 @@ export function ContactTab({ hotel, canEdit }: ContactTabProps) {
           countryCode: countryCode || undefined,
         },
       },
-      { onSuccess: () => { setAddressSaved(true); setTimeout(() => setAddressSaved(false), 2000); } },
+      {
+        onSuccess: () => { setAddressPending(false); setAddressSaved(true); setTimeout(() => setAddressSaved(false), 2000); },
+        onSettled: () => setAddressPending(false),
+      },
     );
   };
 
   const handleSaveLocation = () => {
+    setLocationPending(true);
     saveAddress(
       {
         input: {
@@ -107,27 +112,30 @@ export function ContactTab({ hotel, canEdit }: ContactTabProps) {
           timezone: timezone || undefined,
         },
       },
-      { onSuccess: () => { setLocationSaved(true); setTimeout(() => setLocationSaved(false), 2000); } },
+      {
+        onSuccess: () => { setLocationPending(false); setLocationSaved(true); setTimeout(() => setLocationSaved(false), 2000); },
+        onSettled: () => setLocationPending(false),
+      },
     );
   };
 
   const contactPristine =
     email === (hotel.contact?.email ?? "") &&
     phone === (hotel.contact?.phone ?? "") &&
-    fax === (h.contact?.fax ?? "") &&
+    fax === (hotel.contact?.fax ?? "") &&
     website === (hotel.contact?.website ?? "");
 
   const addressPristine =
-    addressLine1 === (h.address?.line1 ?? "") &&
-    addressLine2 === (h.address?.line2 ?? "") &&
-    city === (h.address?.city ?? "") &&
-    stateProvince === (h.address?.stateProvince ?? "") &&
-    postalCode === (h.address?.postalCode ?? "") &&
+    addressLine1 === (hotel.address?.line1 ?? "") &&
+    addressLine2 === (hotel.address?.line2 ?? "") &&
+    city === (hotel.address?.city ?? "") &&
+    stateProvince === (hotel.address?.stateProvince ?? "") &&
+    postalCode === (hotel.address?.postalCode ?? "") &&
     countryCode === (hotel.countryCode ?? "");
 
   const locationPristine =
-    latitude === (h.location?.latitude != null ? String(h.location.latitude) : "") &&
-    longitude === (h.location?.longitude != null ? String(h.location.longitude) : "") &&
+    latitude === (hotel.location?.latitude != null ? String(hotel.location.latitude) : "") &&
+    longitude === (hotel.location?.longitude != null ? String(hotel.location.longitude) : "") &&
     timezone === (hotel.timezone ?? "UTC");
 
   return (
@@ -258,8 +266,8 @@ export function ContactTab({ hotel, canEdit }: ContactTabProps) {
           </div>
           {canEdit && (
             <div className="flex justify-end">
-              <Button size="sm" disabled={locationPristine || addressPending} onClick={handleSaveLocation}>
-                {addressPending ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Saving...</> : locationSaved ? <><Check className="h-3.5 w-3.5 mr-1.5 text-green-500" />Saved</> : "Save Location"}
+              <Button size="sm" disabled={locationPristine || locationPending} onClick={handleSaveLocation}>
+                {locationPending ? <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Saving...</> : locationSaved ? <><Check className="h-3.5 w-3.5 mr-1.5 text-green-500" />Saved</> : "Save Location"}
               </Button>
             </div>
           )}

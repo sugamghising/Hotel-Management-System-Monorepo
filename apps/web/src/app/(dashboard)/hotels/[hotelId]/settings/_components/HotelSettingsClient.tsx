@@ -93,19 +93,19 @@ export default function HotelSettingsClient() {
 
             <div className="flex-1 min-w-0">
               <TabsContent value="general">
-                <GeneralTab hotel={hotel} canEdit={canEdit} />
+                <GeneralTab hotel={hotel} canEdit={canEditHotel} />
               </TabsContent>
               <TabsContent value="contact">
-                <ContactTab hotel={hotel} canEdit={canEdit} />
+                <ContactTab hotel={hotel} canEdit={canEditHotel} />
               </TabsContent>
               <TabsContent value="operations">
                 <OperationsTab hotel={hotel} canEdit={canEdit} />
               </TabsContent>
               <TabsContent value="amenities">
-                <AmenitiesTab hotel={hotel} canEdit={canEdit} />
+                <AmenitiesTab hotel={hotel} canEdit={canEditSettings} />
               </TabsContent>
               <TabsContent value="policies">
-                <PoliciesTab hotel={hotel} canEdit={canEdit} />
+                <PoliciesTab hotel={hotel} canEdit={canEditSettings} />
               </TabsContent>
               <TabsContent value="danger">
                 <DangerZoneTab

@@ -35,9 +35,8 @@ export function DangerZoneTab({ hotel, canManageStatus, canDeleteHotel }: Danger
 
   if (!canManageStatus && !canDeleteHotel) return null;
 
-  const h = hotel as any;
   const status = hotel.status ?? "ACTIVE";
-  const existingClosingDate = h.dates?.closingDate ?? "";
+  const existingClosingDate = hotel.dates?.closingDate ?? "";
   const statusColor = STATUS_BADGES[status] ?? STATUS_BADGES.ACTIVE;
 
   const handleSetClosingDate = () => {

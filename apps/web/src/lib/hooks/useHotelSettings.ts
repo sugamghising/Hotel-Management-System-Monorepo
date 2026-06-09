@@ -57,8 +57,8 @@ const useCtx = () => {
 };
 
 export const useHotelDetail = (hotelId?: string) => {
-  const { organizationId } = useAuthStore();
-  const id = hotelId ?? useAuthStore.getState().activeHotel?.id;
+  const { organizationId, activeHotel } = useAuthStore();
+  const id = hotelId ?? activeHotel?.id;
   return useQuery({
     queryKey: HOTEL_SETTINGS_KEYS.detail(organizationId ?? "", id ?? ""),
     queryFn: () => hotelsApi.getById(organizationId!, id!),

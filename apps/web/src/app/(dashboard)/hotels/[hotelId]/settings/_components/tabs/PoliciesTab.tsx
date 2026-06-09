@@ -36,20 +36,29 @@ export function PoliciesTab({ hotel, canEdit }: PoliciesTabProps) {
   const [minCheckInAge, setMinCheckInAge] = useState("18");
   const [saved, setSaved] = useState(false);
 
-  const h = hotel as any;
-  const policies = h.configuration?.policies ?? {};
-  const ops = h.configuration?.operationalSettings ?? {};
+  const policies = hotel.configuration?.policies ?? {};
+  const ops = hotel.configuration?.operationalSettings ?? {};
 
   useEffect(() => {
-    setCancellationPolicy(policies.cancellation ?? "");
-    setDepositPolicy(policies.deposit ?? "");
-    setChildPolicy(policies.child ?? "");
-    setGroupPolicy(policies.groupBooking ?? "");
-    setSmokingPolicy(ops.smokingPolicy ?? "NOT_ALLOWED");
-    setPetPolicy(ops.petPolicy ?? "NOT_ALLOWED");
+    setCancellationPolicy((policies.cancellation as string) ?? "");
+    setDepositPolicy((policies.deposit as string) ?? "");
+    setChildPolicy((policies.child as string) ?? "");
+    setGroupPolicy((policies.groupBooking as string) ?? "");
+    setSmokingPolicy((ops.smokingPolicy as string) ?? "NOT_ALLOWED");
+    setPetPolicy((ops.petPolicy as string) ?? "NOT_ALLOWED");
     setPetFee(ops.petFee ? String(ops.petFee) : "");
     setMinCheckInAge(String(ops.minCheckInAge ?? "18"));
-  }, [hotel, h]);
+  }, [hotel]);
+
+  const isPristine =
+    cancellationPolicy === ((policies.cancellation as string) ?? "") &&
+    depositPolicy === ((policies.deposit as string) ?? "") &&
+    childPolicy === ((policies.child as string) ?? "") &&
+    groupPolicy === ((policies.groupBooking as string) ?? "") &&
+    smokingPolicy === ((ops.smokingPolicy as string) ?? "NOT_ALLOWED") &&
+    petPolicy === ((ops.petPolicy as string) ?? "NOT_ALLOWED") &&
+    petFee === (ops.petFee ? String(ops.petFee) : "") &&
+    minCheckInAge === String(ops.minCheckInAge ?? "18");
 
   const handleSave = () => {
     save(
@@ -154,7 +163,7 @@ export function PoliciesTab({ hotel, canEdit }: PoliciesTabProps) {
 
       {canEdit && (
         <div className="flex justify-end">
-          <Button size="sm" disabled={isPending} onClick={handleSave}>
+          <Button size="sm" disabled={isPristine || isPending} onClick={handleSave}>
             {isPending ? (
               <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Saving...</>
             ) : saved ? (

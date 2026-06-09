@@ -44,7 +44,7 @@ const AMENITY_GROUPS = [
 
 export function AmenitiesTab({ hotel, canEdit }: AmenitiesTabProps) {
   const { mutate: save, isPending } = useUpdateHotelSettings();
-  const existing = ((hotel as any).configuration?.amenities ?? []) as string[];
+  const existing = hotel.configuration?.amenities ?? [];
   const [checked, setChecked] = useState<string[]>([]);
   const [saved, setSaved] = useState(false);
 

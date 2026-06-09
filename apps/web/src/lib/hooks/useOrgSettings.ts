@@ -20,6 +20,7 @@ export interface OrgLimits {
   hotels: { used: number; max: number; canAdd: boolean };
   users: { used: number; max: number; canAdd: boolean };
   rooms: { used: number; max: number; canAdd: boolean };
+  trialEnd?: string | null;
 }
 
 export interface OrgSubscription {

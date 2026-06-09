@@ -55,8 +55,8 @@ export function SubscriptionTab({ orgId }: SubscriptionTabProps) {
     );
   }
 
-  const trialEnd = null;
-  const isTrialExpiring = trialEnd && isAfter(new Date(), addDays(parseISO(trialEnd), -7));
+  const trialEnd = limits.trialEnd;
+  const isTrialExpiring = trialEnd != null && isAfter(new Date(), addDays(parseISO(trialEnd), -7));
 
   return (
     <div className="space-y-6">

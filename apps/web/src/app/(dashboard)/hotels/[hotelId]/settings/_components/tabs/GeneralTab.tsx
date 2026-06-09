@@ -33,16 +33,16 @@ export function GeneralTab({ hotel, canEdit }: GeneralTabProps) {
 
   useEffect(() => {
     setName(hotel.name ?? "");
-    setLegalName((hotel as any).legalName ?? "");
-    setBrand((hotel as any).brand ?? "");
+    setLegalName(hotel.legalName ?? "");
+    setBrand(hotel.brand ?? "");
     setPropertyType(hotel.propertyType ?? "");
     setStarRating(hotel.starRating ? String(hotel.starRating) : "");
   }, [hotel]);
 
   const isPristine =
     name === (hotel.name ?? "") &&
-    legalName === ((hotel as any).legalName ?? "") &&
-    brand === ((hotel as any).brand ?? "") &&
+    legalName === (hotel.legalName ?? "") &&
+    brand === (hotel.brand ?? "") &&
     propertyType === (hotel.propertyType ?? "") &&
     starRating === (hotel.starRating ? String(hotel.starRating) : "");
 

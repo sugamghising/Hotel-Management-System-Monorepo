@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, AlertTriangle, ExternalLink } from "lucide-react";
+import { AlertTriangle, ExternalLink } from "lucide-react";
 
 interface OrgDangerZoneTabProps {
   orgId: string;
@@ -16,7 +16,6 @@ interface OrgDangerZoneTabProps {
 
 export function OrgDangerZoneTab({ orgId, orgName, canDelete }: OrgDangerZoneTabProps) {
   const [confirmText, setConfirmText] = useState("");
-  const [isPending] = useState(false);
 
   if (!canDelete) return null;
 
@@ -70,15 +69,11 @@ export function OrgDangerZoneTab({ orgId, orgName, canDelete }: OrgDangerZoneTab
 
         <Button
           size="sm"
-          disabled={confirmText !== orgName || isPending}
+          disabled={confirmText !== orgName}
           onClick={handleRequestDeletion}
           className="bg-red-600 hover:bg-red-700"
         >
-          {isPending ? (
-            <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Requesting...</>
-          ) : (
-            <><ExternalLink className="h-3.5 w-3.5 mr-1.5" />Request Deletion</>
-          )}
+          <><ExternalLink className="h-3.5 w-3.5 mr-1.5" />Request Deletion</>
         </Button>
       </div>
     </div>

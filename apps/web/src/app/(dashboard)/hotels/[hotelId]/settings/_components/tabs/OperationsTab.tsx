@@ -53,20 +53,32 @@ export function OperationsTab({ hotel, canEdit }: OperationsTabProps) {
   const [expressCheckout, setExpressCheckout] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const h = hotel as any;
+  const ops = hotel.configuration?.operationalSettings ?? {};
 
   useEffect(() => {
     setCheckInTime(hotel.operations?.checkInTime ?? "15:00");
     setCheckOutTime(hotel.operations?.checkOutTime ?? "11:00");
     setCurrencyCode(hotel.operations?.currencyCode ?? "USD");
-    setDefaultLanguage((hotel.operations as any)?.defaultLanguage ?? "en");
-    const ops = h.configuration?.operationalSettings ?? {};
+    setDefaultLanguage(hotel.operations?.defaultLanguage ?? "en");
     setEarlyCheckIn(!!ops.earlyCheckInAllowed);
     setEarlyCheckInFee(ops.earlyCheckInFee ? String(ops.earlyCheckInFee) : "");
     setLateCheckOut(!!ops.lateCheckOutAllowed);
     setLateCheckOutFee(ops.lateCheckOutFee ? String(ops.lateCheckOutFee) : "");
     setExpressCheckout(!!ops.expressCheckout);
-  }, [hotel, h]);
+  }, [hotel]);
+
+  const opsPristine =
+    checkInTime === (hotel.operations?.checkInTime ?? "15:00") &&
+    checkOutTime === (hotel.operations?.checkOutTime ?? "11:00") &&
+    currencyCode === (hotel.operations?.currencyCode ?? "USD") &&
+    defaultLanguage === (hotel.operations?.defaultLanguage ?? "en");
+
+  const settingsPristine =
+    earlyCheckIn === (!!ops.earlyCheckInAllowed) &&
+    earlyCheckInFee === (ops.earlyCheckInFee ? String(ops.earlyCheckInFee) : "") &&
+    lateCheckOut === (!!ops.lateCheckOutAllowed) &&
+    lateCheckOutFee === (ops.lateCheckOutFee ? String(ops.lateCheckOutFee) : "") &&
+    expressCheckout === (!!ops.expressCheckout);
 
   const handleSave = () => {
     saveOps(
@@ -85,7 +97,10 @@ export function OperationsTab({ hotel, canEdit }: OperationsTabProps) {
                 },
               },
             },
-            { onSuccess: () => { setSaved(true); setTimeout(() => setSaved(false), 2000); } },
+            {
+              onSuccess: () => { setSaved(true); setTimeout(() => setSaved(false), 2000); },
+              onError: () => { /* settings save error handled by the hook's onError toast */ },
+            },
           );
         },
       },
@@ -224,7 +239,7 @@ export function OperationsTab({ hotel, canEdit }: OperationsTabProps) {
 
       {canEdit && (
         <div className="flex justify-end">
-          <Button size="sm" disabled={opsPending || settingsPending} onClick={handleSave}>
+          <Button size="sm" disabled={(opsPristine && settingsPristine) || opsPending || settingsPending} onClick={handleSave}>
             {opsPending || settingsPending ? (
               <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Saving...</>
             ) : saved ? (
