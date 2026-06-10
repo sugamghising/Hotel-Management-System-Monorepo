@@ -1,22 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
 import { useAuthStore } from "@/stores/auth.store";
-import { buildNav, buildSettingsNav } from "@/config/navigation";
+import { usePermission } from "@/lib/hooks/usePermission";
 import { cn } from "@/lib/utils";
 import { formatInitials } from "@/lib/utils/formatters";
-import {
-  Building2,
-  ChevronDown,
-  LogOut,
-  Settings,
-  ChevronsLeft,
-  ChevronsRight,
-} from "lucide-react";
+import { NavItem } from "./NavItem";
+import { NavSection } from "./NavSection";
+import { HotelSelector } from "./HotelSelector";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,203 +21,256 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { authApi } from "@/lib/api/modules/auth";
-import { useRouter } from "next/navigation";
+import {
+  Building2,
+  Users,
+  UserCog,
+  LayoutDashboard,
+  ConciergeBell,
+  CalendarCheck,
+  UserPlus,
+  BedDouble,
+  LayoutGrid,
+  Sparkles,
+  Wrench,
+  Receipt,
+  MoonStar,
+  BarChart3,
+  UtensilsCrossed,
+  ShoppingCart,
+  TrendingUp,
+  Tag,
+  Settings,
+  Hotel,
+  LogOut,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
-export function Sidebar() {
-  const pathname = usePathname();
+interface SidebarContentProps {
+  onNavClick?: () => void;
+}
+
+export function SidebarContent({ onNavClick }: SidebarContentProps) {
+  const { user, activeHotel, organizationCode, logout } = useAuthStore();
   const router = useRouter();
-  const {
-    user,
-    activeHotel,
-    organizationId,
-    organizationCode,
-    logout,
-    hasPermission,
-  } = useAuthStore();
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const pathname = typeof window !== "undefined" ? window.location.pathname : "";
+  const hotelId = activeHotel?.id ?? "";
+  const base = hotelId ? `/hotels/${hotelId}` : "";
+  const hasHotel = !!activeHotel;
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const navItems = buildNav(organizationId ?? "", activeHotel?.id ?? "");
-  const settingsItems = buildSettingsNav(organizationId ?? "");
-
-  const visibleNav = navItems.filter(
-    (item) => !item.permission || hasPermission(item.permission),
-  );
-
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     await authApi.logout();
     logout();
     router.replace("/login");
-  };
+  }, [logout, router]);
 
-  const isActive = (href: string) => {
-    if (pathname === href) return true;
-    if (!pathname.startsWith(href)) return false;
-    if (pathname[href.length] !== "/") return false;
-    const segments = href.split("/").filter(Boolean);
-    return segments.length >= 3;
-  };
-
-  if (!mounted) {
-    return <aside className={cn("flex flex-col shrink-0 h-screen sticky top-0", "bg-sidebar-bg border-r border-sidebar-border", collapsed ? "w-16" : "w-64")} />;
-  }
+  const linkClick = onNavClick ?? (() => {});
 
   return (
-    <aside
-      className={cn(
-        "flex flex-col shrink-0 h-screen sticky top-0",
-        "bg-sidebar-bg border-r border-sidebar-border",
-        "transition-all duration-200",
-        collapsed ? "w-16" : "w-64",
-      )}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-4 border-b border-sidebar-border">
-        {!collapsed && (
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-7 h-7 rounded-md bg-blue-600 flex items-center justify-center shrink-0">
-              <Building2 className="w-4 h-4 text-white" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-white truncate">
-                {activeHotel?.name ?? "Select Hotel"}
-              </p>
-              <p className="text-xs text-sidebar-text-muted truncate">
-                {organizationCode}
-              </p>
-            </div>
-          </div>
-        )}
-        {collapsed && (
-          <div className="w-7 h-7 rounded-md bg-blue-600 flex items-center justify-center mx-auto">
-            <Building2 className="w-4 h-4 text-white" />
-          </div>
-        )}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 text-sidebar-text-muted hover:text-white hover:bg-sidebar-hover ml-auto"
-          onClick={() => setCollapsed(!collapsed)}
-        >
-          {collapsed ? (
-            <ChevronsRight className="h-3.5 w-3.5" />
-          ) : (
-            <ChevronsLeft className="h-3.5 w-3.5" />
-          )}
-        </Button>
+    <div className="flex flex-col h-full">
+      {/* Logo + org name — fixed ~56px */}
+      <div className="flex items-center gap-2.5 px-4 h-14 shrink-0 border-b">
+        <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center shrink-0">
+          <Building2 className="w-4 h-4 text-primary-foreground" />
+        </div>
+        <div className="min-w-0">
+          <Link href="/" className="text-sm font-bold text-foreground hover:text-primary transition-colors">
+            HMS
+          </Link>
+          <p className="text-[10px] text-muted-foreground truncate leading-tight">
+            {organizationCode ?? ""}
+          </p>
+        </div>
       </div>
 
-      {/* Nav items */}
-      <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto scrollbar-thin">
-        {visibleNav.map((item) => {
-          const Icon = item.icon;
-          const active = isActive(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              title={collapsed ? item.label : undefined}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium",
-                "transition-colors duration-100",
-                active
-                  ? "bg-sidebar-active text-white"
-                  : "text-sidebar-text hover:bg-sidebar-hover hover:text-white",
-                collapsed && "justify-center px-2",
-              )}
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              {!collapsed && <span className="truncate">{item.label}</span>}
-            </Link>
-          );
-        })}
-      </nav>
+      {/* Hotel Selector */}
+      <HotelSelector />
 
-      {/* Settings section */}
-      {!collapsed && (
-        <div className="px-2 py-2 border-t border-sidebar-border">
-          <button
-            onClick={() => setSettingsOpen(!settingsOpen)}
-            className="flex items-center justify-between w-full px-3 py-2 rounded-md text-sm
-                       text-sidebar-text-muted hover:text-white hover:bg-sidebar-hover
-                       transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Settings className="h-4 w-4" />
-              <span>Settings</span>
-            </div>
-            <ChevronDown
-              className={cn(
-                "h-3.5 w-3.5 transition-transform",
-                settingsOpen && "rotate-180",
-              )}
-            />
-          </button>
-          {settingsOpen && (
-            <div className="mt-0.5 space-y-0.5 pl-2">
-              {settingsItems.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-1.5 rounded-md text-sm",
-                      "text-sidebar-text-muted hover:text-white hover:bg-sidebar-hover transition-colors",
-                      isActive(item.href) && "bg-sidebar-active text-white",
-                    )}
-                  >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span className="truncate">{item.label}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
+      {/* Nav — fills remaining height */}
+      <div className="flex-1 overflow-y-auto scrollbar-thin px-2 py-1">
+        {/* ZONE A — org-scoped */}
+        <div className="space-y-0.5">
+          <NavItem
+            href="/guests"
+            label="Guests"
+            icon={Users}
+            permission="GUEST.READ"
+            disabled={false}
+          />
+          <NavItem
+            href="/users"
+            label="Users & Staff"
+            icon={UserCog}
+            permission="USER.VIEW"
+            disabled={false}
+          />
         </div>
-      )}
 
-      {/* User footer */}
-      <div
-        className={cn(
-          "p-2 border-t border-sidebar-border",
-          collapsed && "flex justify-center",
-        )}
-      >
+        <Separator className="my-2" />
+
+        {/* ZONE B — hotel-scoped */}
+        <div className="space-y-0.5">
+          <NavItem
+            href={base || "#"}
+            label="Dashboard"
+            icon={LayoutDashboard}
+            disabled={!hasHotel}
+          />
+
+          <NavSection
+            label="Front Desk"
+            icon={ConciergeBell}
+            disabled={!hasHotel}
+          >
+            <NavItem
+              href={`${base}/reservations`}
+              label="Reservations"
+              icon={CalendarCheck}
+              permission="RESERVATION.READ"
+              disabled={!hasHotel}
+            />
+            <NavItem
+              href={`${base}/reservations/new`}
+              label="Walk-in"
+              icon={UserPlus}
+              permission="RESERVATION.CREATE"
+              disabled={!hasHotel}
+              sublabel="New walk-in"
+            />
+          </NavSection>
+
+          <NavSection
+            label="Rooms"
+            icon={BedDouble}
+            disabled={!hasHotel}
+          >
+            <NavItem
+              href={`${base}/rooms/grid`}
+              label="Room Status"
+              icon={LayoutGrid}
+              permission="ROOM.READ"
+              disabled={!hasHotel}
+            />
+            <NavItem
+              href={`${base}/housekeeping`}
+              label="Housekeeping"
+              icon={Sparkles}
+              permission="HOUSEKEEPING.READ"
+              disabled={!hasHotel}
+            />
+            <NavItem
+              href={`${base}/maintenance`}
+              label="Maintenance"
+              icon={Wrench}
+              permission="MAINTENANCE.READ"
+              disabled={!hasHotel}
+            />
+          </NavSection>
+
+          <NavSection
+            label="Finance"
+            icon={Receipt}
+            disabled={!hasHotel}
+          >
+            <NavItem
+              href={`${base}/night-audit`}
+              label="Night Audit"
+              icon={MoonStar}
+              permission="NIGHT_AUDIT.VIEW_STATUS"
+              disabled={!hasHotel}
+            />
+            <NavItem
+              href={`${base}/reports`}
+              label="Reports"
+              icon={BarChart3}
+              permission="REPORT.OCCUPANCY"
+              disabled={!hasHotel}
+            />
+          </NavSection>
+
+          <NavSection
+            label="Restaurant"
+            icon={UtensilsCrossed}
+            disabled={!hasHotel}
+          >
+            <NavItem
+              href={`${base}/pos`}
+              label="POS / Orders"
+              icon={ShoppingCart}
+              permission="POS.READ_ORDER"
+              disabled={!hasHotel}
+            />
+          </NavSection>
+
+          <NavSection
+            label="Revenue"
+            icon={TrendingUp}
+            disabled={!hasHotel}
+          >
+            <NavItem
+              href={`${base}/rate-plans`}
+              label="Rate Plans"
+              icon={Tag}
+              permission="RATE_PLAN.READ"
+              disabled={!hasHotel}
+            />
+          </NavSection>
+        </div>
+
+        <Separator className="my-2" />
+
+        {/* Settings section */}
+        <NavSection
+          label="Settings"
+          icon={Settings}
+          defaultOpen={false}
+          disabled={false}
+        >
+          <NavItem
+            href={hasHotel ? `${base}/settings` : "#"}
+            label="Hotel Settings"
+            icon={Hotel}
+            permission="HOTEL.SETTINGS_UPDATE"
+            disabled={!hasHotel}
+          />
+          <NavItem
+            href="/settings"
+            label="Organization"
+            icon={Building2}
+            permission="ORGANIZATION.READ"
+            disabled={false}
+          />
+        </NavSection>
+      </div>
+
+      {/* User footer — fixed bottom */}
+      <div className="p-2 border-t shrink-0">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button
-              className={cn(
-                "flex items-center gap-2.5 w-full px-2 py-2 rounded-md",
-                "hover:bg-sidebar-hover transition-colors",
-                collapsed && "justify-center w-auto",
-              )}
-            >
+            <button className="flex items-center gap-2.5 w-full px-2 py-2 rounded-md hover:bg-accent transition-colors">
               <Avatar className="h-7 w-7 shrink-0">
-                <AvatarFallback className="bg-blue-600 text-white text-xs font-semibold">
+                <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
                   {user ? formatInitials(user.firstName, user.lastName) : "??"}
                 </AvatarFallback>
               </Avatar>
-              {!collapsed && (
-                <div className="min-w-0 text-left">
-                  <p className="text-sm font-medium text-white truncate">
-                    {user?.firstName} {user?.lastName}
-                  </p>
-                  <p className="text-xs text-sidebar-text-muted truncate">
-                    {user?.email}
-                  </p>
-                </div>
-              )}
+              <div className="min-w-0 text-left flex-1">
+                <p className="text-sm font-medium truncate">
+                  {user?.firstName} {user?.lastName}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {user?.email}
+                </p>
+              </div>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Change Password</DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => router.push("/settings")}
+            >
+              Organization Settings
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-destructive focus:text-destructive"
@@ -233,6 +282,73 @@ export function Sidebar() {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+    </div>
+  );
+}
+
+export function Sidebar() {
+  const [mounted, setMounted] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <aside className="hidden lg:flex flex-col shrink-0 h-screen sticky top-0 bg-background border-r w-60" />
+    );
+  }
+
+  return (
+    <aside
+      className={cn(
+        "hidden lg:flex flex-col shrink-0 h-screen sticky top-0",
+        "bg-background border-r transition-all duration-200",
+        collapsed ? "w-16" : "w-60",
+      )}
+    >
+      {/* Collapse toggle */}
+      <div
+        className={cn(
+          "flex items-center h-14 shrink-0 border-b px-3",
+          collapsed && "justify-center",
+        )}
+      >
+        {!collapsed && (
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center shrink-0">
+              <Building2 className="w-4 h-4 text-primary-foreground" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-foreground truncate">HMS</p>
+            </div>
+          </div>
+        )}
+        {collapsed && (
+          <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center">
+            <Building2 className="w-4 h-4 text-primary-foreground" />
+          </div>
+        )}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 text-muted-foreground hover:text-foreground shrink-0"
+          onClick={() => setCollapsed(!collapsed)}
+        >
+          {collapsed ? (
+            <ChevronsRight className="h-3.5 w-3.5" />
+          ) : (
+            <ChevronsLeft className="h-3.5 w-3.5" />
+          )}
+        </Button>
+      </div>
+
+      {!collapsed && (
+        <div className="flex-1 overflow-hidden">
+          <SidebarContent />
+        </div>
+      )}
     </aside>
   );
 }
