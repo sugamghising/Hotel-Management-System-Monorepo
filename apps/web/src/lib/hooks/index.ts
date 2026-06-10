@@ -12,6 +12,8 @@ export * from "./useRoles";
 export * from "./useReservations";
 
 export * from "./usePOS";
+export * from "./useHotelSettings";
+export * from "./useOrgSettings";
 export {
   REPORT_KEYS,
   type ADRReport,
