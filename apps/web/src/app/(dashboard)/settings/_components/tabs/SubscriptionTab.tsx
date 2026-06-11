@@ -93,9 +93,9 @@ export function SubscriptionTab({ orgId }: SubscriptionTabProps) {
         <p className="text-sm text-muted-foreground">
           Your organization&apos;s subscription details are managed through the billing portal.
         </p>
-        <UsageBar used={limits.hotels.used} max={limits.hotels.max} label="Hotels" />
-        <UsageBar used={limits.users.used} max={limits.users.max} label="Users" />
-        <UsageBar used={limits.rooms.used} max={limits.rooms.max} label="Rooms" />
+        <UsageBar used={limits.hotels?.used ?? 0} max={limits.hotels?.max ?? 1} label="Hotels" />
+        <UsageBar used={limits.users?.used ?? 0} max={limits.users?.max ?? 1} label="Users" />
+        <UsageBar used={limits.rooms?.used ?? 0} max={limits.rooms?.max ?? 1} label="Rooms" />
       </div>
 
       <div className="rounded-lg border border-green-200 bg-green-50 p-3 flex items-start gap-2">
@@ -103,7 +103,7 @@ export function SubscriptionTab({ orgId }: SubscriptionTabProps) {
         <div>
           <p className="text-sm font-medium text-green-800">All systems operational</p>
           <p className="text-xs text-green-700">
-            {limits.hotels.canAdd && limits.users.canAdd && limits.rooms.canAdd
+            {limits.hotels?.canAdd !== false && limits.users?.canAdd !== false && limits.rooms?.canAdd !== false
               ? "You have capacity to add more resources."
               : "You have reached the limit for one or more resources."}
           </p>

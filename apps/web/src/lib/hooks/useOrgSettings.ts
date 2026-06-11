@@ -55,8 +55,8 @@ export const useOrgLimits = (orgId: string | null) => {
     queryKey: ORG_KEYS.limits(orgId ?? ""),
     queryFn: () =>
       apiClient
-        .get(`/organizations/${orgId}/limits`)
-        .then((r) => r.data.data as OrgLimits),
+        .get<{ data: OrgLimits }>(`/organizations/${orgId}/limits`)
+        .then((r) => r.data.data ?? null),
     enabled: !!orgId,
   });
 };
