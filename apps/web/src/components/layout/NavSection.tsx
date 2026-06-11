@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, Children, isValidElement } from "react";
 import { usePathname } from "next/navigation";
+import { useAuthStore } from "@/stores/auth.store";
 import {
   Collapsible,
   CollapsibleTrigger,
@@ -36,14 +37,24 @@ function hasActiveChild(
   return found;
 }
 
-function countVisibleChildren(children: React.ReactNode): number {
+function hasVisibleChildren(
+  children: React.ReactNode,
+  user: { isSuperAdmin: boolean; permissions: string[] } | null,
+): boolean {
   let count = 0;
   Children.forEach(children, (child) => {
-    if (child !== null && child !== undefined && child !== false) {
-      count++;
+    if (count > 0) return;
+    if (!isValidElement<{ permission?: string; disabled?: boolean }>(child)) {
+      if (child !== null && child !== undefined && child !== false) count++;
+      return;
     }
+    if (child.props.disabled) return;
+    if (!child.props.permission) { count++; return; }
+    if (!user) return;
+    if (user.isSuperAdmin) { count++; return; }
+    if (user.permissions.includes(child.props.permission)) count++;
   });
-  return count;
+  return count > 0;
 }
 
 export function NavSection({
@@ -54,6 +65,7 @@ export function NavSection({
   disabled,
 }: NavSectionProps) {
   const pathname = usePathname();
+  const user = useAuthStore((s) => s.user);
   const storageKey = `hms_nav_section_${label}`;
 
   const hasActive = hasActiveChild(children, pathname);
@@ -83,8 +95,7 @@ export function NavSection({
     [storageKey],
   );
 
-  const visibleCount = countVisibleChildren(children);
-  if (visibleCount === 0) return null;
+  if (!hasVisibleChildren(children, user)) return null;
 
   return (
     <Collapsible open={open} onOpenChange={handleOpenChange}>
