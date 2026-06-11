@@ -1,3 +1,5 @@
+"use client"
+
 import { cn } from "@/lib/utils";
 
 function Skeleton({ className, as = "span", ...rest }: { className?: string; as?: "span" | "div"; [k: string]: any }) {

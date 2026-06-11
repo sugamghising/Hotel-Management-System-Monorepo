@@ -21,12 +21,6 @@ export default function DashboardLayout({
     }
   }, [_hydrated, isAuthenticated, organizationId, router]);
 
-  if (!_hydrated) return null;
-
-  if (!isAuthenticated && !organizationId) {
-    return null;
-  }
-
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar />
