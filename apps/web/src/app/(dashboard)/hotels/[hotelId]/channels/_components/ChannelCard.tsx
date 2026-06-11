@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useAuthStore } from "@/stores/auth.store";
 import { usePermission } from "@/lib/hooks/usePermission";
-import { useToggleChannel, useSyncChannel, useDisconnectChannel, type Channel } from "@/lib/hooks/useChannelManager";
+import { useToggleChannel, useSyncChannel, useDisconnectChannel, type Channel, type ChannelCode } from "@/lib/hooks/useChannelManager";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,7 @@ import { EditChannelDialog } from "./EditChannelDialog";
 import { Loader2, RefreshCw, Settings, Trash2, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 
 interface SupportedChannel {
-  code: string;
+  code: ChannelCode;
   name: string;
   icon: string;
   color: string;
@@ -224,7 +224,7 @@ export function ChannelCard({ supported, channel }: ChannelCardProps) {
         <ConnectChannelDialog
           open={connectOpen}
           onOpenChange={setConnectOpen}
-          channelCode={supported.code as any}
+          channelCode={supported.code}
           channelName={supported.name}
         />
       )}

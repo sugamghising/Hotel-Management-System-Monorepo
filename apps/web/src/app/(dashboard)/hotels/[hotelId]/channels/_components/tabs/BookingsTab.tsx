@@ -48,6 +48,7 @@ export function BookingsTab() {
 
   const [channelFilter, setChannelFilter] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(1);
@@ -59,6 +60,7 @@ export function BookingsTab() {
   const { data, isLoading } = useChannelBookings(hotelId, {
     channelId: channelFilter || undefined,
     status: statusFilter || undefined,
+    search: searchQuery || undefined,
     dateFrom: dateFrom || undefined,
     dateTo: dateTo || undefined,
     page,
@@ -82,6 +84,8 @@ export function BookingsTab() {
           <input
             placeholder="Search by guest name..."
             className="border rounded h-8 w-full pl-7 pr-2 text-xs"
+            value={searchQuery}
+            onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
           />
         </div>
         <Select value={channelFilter} onValueChange={(v) => { setChannelFilter(v); setPage(1); }}>

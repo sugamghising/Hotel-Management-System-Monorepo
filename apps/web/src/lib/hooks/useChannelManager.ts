@@ -125,6 +125,7 @@ export interface ChannelBookingsFilter {
   status?: string;
   dateFrom?: string;
   dateTo?: string;
+  search?: string;
   page?: number;
   pageSize?: number;
 }

@@ -155,8 +155,8 @@ export function ConnectChannelDialog({
         syncFrequencyMinutes: syncFrequency,
         pushAvailability,
         pushRates,
-        minAdvanceDays: Number(minAdvance),
-        maxAdvanceDays: Number(maxAdvance),
+        minAdvanceDays: Number(minAdvance) || 0,
+        maxAdvanceDays: Number(maxAdvance) || 0,
       },
     };
     connect(
