@@ -70,7 +70,7 @@ const nightAuditApi = {
       .get<{
         data: { audit: NightAuditStatus_ };
       }>(`/organizations/${orgId}/hotels/${hotelId}/night-audit/status`)
-      .then((r) => r.data.data.audit),
+      .then((r) => r.data.data.audit ?? null),
 
   preCheck: (orgId: string, hotelId: string) =>
     apiClient
@@ -84,14 +84,14 @@ const nightAuditApi = {
       .get<{
         data: { audits: NightAuditStatus_[] };
       }>(`/organizations/${orgId}/hotels/${hotelId}/night-audit/history`)
-      .then((r) => r.data.data.audits),
+      .then((r) => r.data.data.audits ?? []),
 
   detail: (orgId: string, hotelId: string, auditId: string) =>
     apiClient
       .get<{
         data: { audit: NightAuditStatus_ };
       }>(`/organizations/${orgId}/hotels/${hotelId}/night-audit/${auditId}/details`)
-      .then((r) => r.data.data.audit),
+      .then((r) => r.data.data.audit ?? null),
 
   start: (orgId: string, hotelId: string, input: NightAuditRunInput) =>
     apiClient
