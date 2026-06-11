@@ -58,6 +58,7 @@ function CommandDialog({
           className
         )}
         showCloseButton={showCloseButton}
+        title={title}
       >
         {children}
       </DialogContent>

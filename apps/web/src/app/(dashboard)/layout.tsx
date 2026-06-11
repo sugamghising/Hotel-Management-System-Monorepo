@@ -13,17 +13,13 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { isAuthenticated, organizationId } = useAuthStore();
+  const { isAuthenticated, organizationId, _hydrated } = useAuthStore();
 
   useEffect(() => {
-    if (!isAuthenticated && !organizationId) {
+    if (_hydrated && !isAuthenticated && !organizationId) {
       router.replace("/login");
     }
-  }, [isAuthenticated, organizationId, router]);
-
-  if (!isAuthenticated && !organizationId) {
-    return null;
-  }
+  }, [_hydrated, isAuthenticated, organizationId, router]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">

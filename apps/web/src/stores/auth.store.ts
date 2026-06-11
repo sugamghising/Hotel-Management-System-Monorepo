@@ -28,6 +28,7 @@ interface AuthState {
   organizationCode: string | null;
   isAuthenticated: boolean;
   refreshToken: string | null;
+  _hydrated: boolean;
 
   // Actions
   setAuth: (
@@ -138,6 +139,7 @@ export const useAuthStore = create<AuthState>()(
       organizationCode: null,
       isAuthenticated: false,
       refreshToken: null,
+      _hydrated: false,
 
       setAuth: (user, orgId, orgCode, accessToken, refreshToken) => {
         setTokens(accessToken, refreshToken);
@@ -197,6 +199,9 @@ export const useAuthStore = create<AuthState>()(
     {
       name: "hms-auth",
       storage: createJSONStorage(() => safeStorage),
+      onRehydrateStorage: () => () => {
+        useAuthStore.setState({ _hydrated: true });
+      },
       partialize: (state) => ({
         organizationId: state.organizationId,
         organizationCode: state.organizationCode,

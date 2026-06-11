@@ -238,7 +238,7 @@ const hkApi = {
       .get<{
         data: { inspections: HousekeepingTask[] };
       }>(`/organizations/${orgId}/hotels/${hotelId}/housekeeping/inspections`)
-      .then((r) => r.data.data.inspections),
+      .then((r) => r.data.data.inspections ?? []),
 
   requestTurndown: (orgId: string, hotelId: string, roomId: string) =>
     apiClient

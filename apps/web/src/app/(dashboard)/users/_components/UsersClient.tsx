@@ -83,10 +83,10 @@ export default function UsersClient() {
 
   const { data: usersData, isLoading } = useUsers({
     search: search || undefined,
-    status: status || undefined,
-    department: department || undefined,
-    roleCode: roleCode || undefined,
-    hotelId: hotelId || undefined,
+    status: status && status !== "all" ? status : undefined,
+    department: department && department !== "all" ? department : undefined,
+    roleCode: roleCode && roleCode !== "all" ? roleCode : undefined,
+    hotelId: hotelId && hotelId !== "all" ? hotelId : undefined,
     page,
     limit: 20,
   });
@@ -195,10 +195,10 @@ export default function UsersClient() {
         showHotelFilter={false}
         hotels={hotelsData?.hotels}
         onSearchChange={handleSearchChange}
-        onStatusChange={(v) => navigate({ status: v || null })}
-        onDepartmentChange={(v) => navigate({ department: v || null })}
-        onRoleCodeChange={(v) => navigate({ roleCode: v || null })}
-        onHotelIdChange={(v) => navigate({ hotelId: v || null })}
+        onStatusChange={(v) => navigate({ status: v === "all" ? null : v })}
+        onDepartmentChange={(v) => navigate({ department: v === "all" ? null : v })}
+        onRoleCodeChange={(v) => navigate({ roleCode: v === "all" ? null : v })}
+        onHotelIdChange={(v) => navigate({ hotelId: v === "all" ? null : v })}
         onClear={clearFilters}
       />
 

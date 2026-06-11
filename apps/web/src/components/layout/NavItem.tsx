@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useContext } from "react";
+import { NavClickContext } from "./nav-click-context";
 import { usePermission } from "@/lib/hooks/usePermission";
 import { useAuthStore } from "@/stores/auth.store";
 import { cn } from "@/lib/utils";
@@ -17,7 +19,10 @@ interface NavItemProps {
   badge?: string | number;
   disabled?: boolean;
   sublabel?: string;
+  onClick?: () => void;
 }
+
+
 
 export function NavItem({
   href,
@@ -27,9 +32,11 @@ export function NavItem({
   badge: badgeCount,
   disabled,
   sublabel,
+  onClick,
 }: NavItemProps) {
   const pathname = usePathname();
   const isSuperAdmin = useAuthStore((s) => s.user?.isSuperAdmin);
+  const onNavClick = useContext(NavClickContext);
 
   const hasPermission = usePermission(permission ?? "");
   const canSee = !permission || isSuperAdmin || hasPermission;
@@ -72,6 +79,11 @@ export function NavItem({
     </div>
   );
 
+  const handleClick = () => {
+    onClick?.();
+    onNavClick?.();
+  };
+
   if (disabled) {
     return (
       <Tooltip content="Select a hotel first" side="right">
@@ -81,7 +93,7 @@ export function NavItem({
   }
 
   return (
-    <Link href={href} className="block">
+    <Link href={href} className="block" onClick={handleClick}>
       {content}
     </Link>
   );

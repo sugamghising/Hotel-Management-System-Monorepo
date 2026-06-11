@@ -33,7 +33,7 @@ interface UserFiltersProps {
 }
 
 const STATUS_OPTIONS = [
-  { value: "", label: "All Statuses" },
+  { value: "all", label: "All Statuses" },
   { value: "ACTIVE", label: "Active" },
   { value: "PENDING_VERIFICATION", label: "Pending Verification" },
   { value: "INACTIVE", label: "Inactive" },
@@ -99,7 +99,7 @@ export function UserFilters({
           <SelectValue placeholder="Department" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All Departments</SelectItem>
+          <SelectItem value="all">All Departments</SelectItem>
           {departments.map((d) => (
             <SelectItem key={d} value={d}>
               {d}
@@ -113,7 +113,7 @@ export function UserFilters({
           <SelectValue placeholder="Role" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">All Roles</SelectItem>
+          <SelectItem value="all">All Roles</SelectItem>
           {rolesData?.roles?.map((role) => (
             <SelectItem key={role.id} value={role.code}>
               {role.name}
@@ -128,7 +128,7 @@ export function UserFilters({
             <SelectValue placeholder="Hotel" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Hotels</SelectItem>
+            <SelectItem value="all">All Hotels</SelectItem>
             {hotels?.map((h) => (
               <SelectItem key={h.id} value={h.id}>
                 {h.name}

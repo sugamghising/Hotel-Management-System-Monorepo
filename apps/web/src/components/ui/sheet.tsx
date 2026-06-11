@@ -50,10 +50,12 @@ function SheetContent({
   children,
   side = "right",
   showCloseButton = true,
+  title,
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
   side?: "top" | "right" | "bottom" | "left"
   showCloseButton?: boolean
+  title?: string
 }) {
   return (
     <SheetPortal>
@@ -67,6 +69,7 @@ function SheetContent({
         )}
         {...props}
       >
+        <SheetTitle className="sr-only">{title ?? "Sheet"}</SheetTitle>
         {children}
         {showCloseButton && (
           <SheetPrimitive.Close data-slot="sheet-close" asChild>

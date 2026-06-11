@@ -52,7 +52,7 @@ export function RunAuditDialog({ open, onClose, preCheck }: RunAuditDialogProps)
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-2">
-          {preCheck && (
+          {preCheck?.checks && (
             <div className="text-sm text-muted-foreground space-y-1">
               <p>Unbalanced folios: {preCheck.checks.unbalancedFolios}</p>
               <p>

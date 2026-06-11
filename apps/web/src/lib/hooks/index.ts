@@ -14,6 +14,7 @@ export * from "./useReservations";
 export * from "./usePOS";
 export * from "./useHotelSettings";
 export * from "./useOrgSettings";
+export * from "./useChannelManager";
 export {
   REPORT_KEYS,
   type ADRReport,

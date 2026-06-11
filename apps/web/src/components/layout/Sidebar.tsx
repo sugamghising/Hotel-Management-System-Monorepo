@@ -10,6 +10,7 @@ import { formatInitials } from "@/lib/utils/formatters";
 import { NavItem } from "./NavItem";
 import { NavSection } from "./NavSection";
 import { HotelSelector } from "./HotelSelector";
+import { NavClickContext } from "./nav-click-context";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -55,7 +56,6 @@ interface SidebarContentProps {
 export function SidebarContent({ onNavClick }: SidebarContentProps) {
   const { user, activeHotel, organizationCode, logout } = useAuthStore();
   const router = useRouter();
-  const pathname = typeof window !== "undefined" ? window.location.pathname : "";
   const hotelId = activeHotel?.id ?? "";
   const base = hotelId ? `/hotels/${hotelId}` : "";
   const hasHotel = !!activeHotel;
@@ -66,10 +66,9 @@ export function SidebarContent({ onNavClick }: SidebarContentProps) {
     router.replace("/login");
   }, [logout, router]);
 
-  const linkClick = onNavClick ?? (() => {});
-
   return (
     <div className="flex flex-col h-full">
+      <NavClickContext.Provider value={onNavClick}>
       {/* Logo + org name — fixed ~56px */}
       <div className="flex items-center gap-2.5 px-4 h-14 shrink-0 border-b">
         <div className="w-7 h-7 rounded-md bg-primary flex items-center justify-center shrink-0">
@@ -282,6 +281,7 @@ export function SidebarContent({ onNavClick }: SidebarContentProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      </NavClickContext.Provider>
     </div>
   );
 }
