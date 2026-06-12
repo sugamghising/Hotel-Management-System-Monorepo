@@ -96,7 +96,7 @@ export function AdjustStockDialog({ itemId, open, onClose }: AdjustStockDialogPr
     );
   };
 
-  const isValid = !!quantity && Number(quantity) > 0 && !!reason;
+  const isValid = !!reason && (mode === "set" ? Number(quantity) >= 0 : !!quantity && Number(quantity) > 0);
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -146,14 +146,14 @@ export function AdjustStockDialog({ itemId, open, onClose }: AdjustStockDialogPr
               <Label className="text-xs font-medium">
                 {mode === "set" ? "New Stock Count *" : "Quantity *"}
               </Label>
-              <Input
-                type="number"
-                min={1}
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                className="mt-1 h-8"
-                placeholder={mode === "set" ? "Enter exact count..." : "Enter quantity..."}
-              />
+                <Input
+                  type="number"
+                  min={mode === "set" ? 0 : 1}
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                  className="mt-1 h-8"
+                  placeholder={mode === "set" ? "Enter exact count..." : "Enter quantity..."}
+                />
             </div>
 
             {mode === "add" && (

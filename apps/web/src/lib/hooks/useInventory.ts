@@ -467,7 +467,7 @@ export const useInventoryItems = (filters?: InventoryFilters) => {
   return useQuery({
     queryKey: INVENTORY_KEYS.items(organizationId ?? "", activeHotel?.id ?? "", filters),
     queryFn: () => inventoryApi.items(organizationId!, activeHotel!.id, filters),
-    enabled: !!organizationId && !!activeHotel,
+    enabled: !!organizationId && !!activeHotel && !!filters,
   });
 };
 
@@ -587,6 +587,7 @@ export const useAdjustStock = () => {
       qc.invalidateQueries({ queryKey: ["inventory", "item", orgId, hid, itemId] });
       qc.invalidateQueries({ queryKey: ["inventory", "items", orgId, hid] });
       qc.invalidateQueries({ queryKey: ["inventory", "transactions", orgId, hid] });
+      qc.invalidateQueries({ queryKey: ["inventory", "item-transactions", orgId, hid, itemId] });
       qc.invalidateQueries({ queryKey: ["inventory", "low-stock", orgId, hid] });
       toast.success("Stock adjusted");
     },
@@ -606,6 +607,7 @@ export const useConsumeStock = () => {
       qc.invalidateQueries({ queryKey: ["inventory", "item", orgId, hid, itemId] });
       qc.invalidateQueries({ queryKey: ["inventory", "items", orgId, hid] });
       qc.invalidateQueries({ queryKey: ["inventory", "transactions", orgId, hid] });
+      qc.invalidateQueries({ queryKey: ["inventory", "item-transactions", orgId, hid, itemId] });
       qc.invalidateQueries({ queryKey: ["inventory", "low-stock", orgId, hid] });
       toast.success("Consumption recorded");
     },

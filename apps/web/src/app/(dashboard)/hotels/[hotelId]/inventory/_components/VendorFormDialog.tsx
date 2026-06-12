@@ -94,7 +94,6 @@ export function VendorFormDialog({ open, onClose, vendor }: VendorFormDialogProp
         phone: phone || undefined,
         address: address as Record<string, any> | undefined,
         paymentTerms: paymentTerms || undefined,
-        ...(paymentTerms ? {} : {}),
       };
       update({ vendorId: vendor.id, input }, { onSuccess: onClose });
     } else {

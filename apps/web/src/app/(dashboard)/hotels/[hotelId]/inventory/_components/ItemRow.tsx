@@ -7,6 +7,18 @@ import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/formatters";
 import type { InventoryItem } from "@/lib/hooks/useInventory";
 
+const CATEGORY_LABELS: Record<string, string> = {
+  ROOM_SUPPLIES: "Room Supplies",
+  MINIBAR: "Minibar",
+  CLEANING: "Cleaning",
+  FANDB: "F&B",
+  MAINTENANCE: "Maintenance",
+  OFFICE: "Office",
+  UNIFORM: "Uniform",
+  MARKETING: "Marketing",
+  OTHER: "Other",
+};
+
 interface ItemRowProps {
   item: InventoryItem;
   onAdjust: (itemId: string) => void;
@@ -50,18 +62,6 @@ export function ItemRow({
     ) : item.currentStock <= item.reorderPoint ? (
       <span className="text-[10px] text-red-600 font-medium">⚠ Reorder now</span>
     ) : null;
-
-  const CATEGORY_LABELS: Record<string, string> = {
-    ROOM_SUPPLIES: "Room Supplies",
-    MINIBAR: "Minibar",
-    CLEANING: "Cleaning",
-    FANDB: "F&B",
-    MAINTENANCE: "Maintenance",
-    OFFICE: "Office",
-    UNIFORM: "Uniform",
-    MARKETING: "Marketing",
-    OTHER: "Other",
-  };
 
   return (
     <tr

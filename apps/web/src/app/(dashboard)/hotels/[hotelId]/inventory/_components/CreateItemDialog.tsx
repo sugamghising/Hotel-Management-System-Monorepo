@@ -76,7 +76,7 @@ export function CreateItemDialog({ open, onClose }: CreateItemDialogProps) {
   const reorderTooHigh = reorderPointNum > parLevelNum;
 
   const handleSubmit = () => {
-    if (!sku || !name || !category || !unitOfMeasure || !parLevel || !reorderQty) return;
+    if (!sku || !name || !category || !unitOfMeasure || !parLevel || !reorderPoint || !reorderQty) return;
     mutate(
       {
         sku: sku.toUpperCase(),
@@ -96,7 +96,7 @@ export function CreateItemDialog({ open, onClose }: CreateItemDialogProps) {
   };
 
   const isValid =
-    !!sku && !!name && !!category && !!unitOfMeasure && !!parLevel && !!reorderQty && !reorderTooHigh;
+    !!sku && !!name && !!category && !!unitOfMeasure && !!parLevel && !!reorderPoint && !!reorderQty && !reorderTooHigh;
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>

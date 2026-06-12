@@ -133,7 +133,6 @@ export function CreatePODialog({ open, onClose, defaultVendorId }: CreatePODialo
         if (andSubmit && data?.id) {
           submitPO(data.id, {
             onSuccess: onClose,
-            onError: () => onClose(),
           });
         } else {
           onClose();
