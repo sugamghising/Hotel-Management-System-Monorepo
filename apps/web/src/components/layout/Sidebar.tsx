@@ -30,6 +30,7 @@ import {
   ConciergeBell,
   CalendarCheck,
   UserPlus,
+  MessageSquare,
   BedDouble,
   LayoutGrid,
   Sparkles,
@@ -137,6 +138,13 @@ export function SidebarContent({ onNavClick }: SidebarContentProps) {
               permission="RESERVATION.CREATE"
               disabled={!hasHotel}
               sublabel="New walk-in"
+            />
+            <NavItem
+              href={`${base}/communications`}
+              label="Communications"
+              icon={MessageSquare}
+              permission="COMMUNICATION.READ"
+              disabled={!hasHotel}
             />
           </NavSection>
 
