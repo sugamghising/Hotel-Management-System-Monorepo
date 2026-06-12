@@ -38,10 +38,17 @@ export function LogTab() {
   const [selectedComm, setSelectedComm] = useState<Communication | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
 
+  const rawDateFrom = sp.get("dateFrom");
+  const rawDateTo = sp.get("dateTo");
+
   const filters: CommunicationLogFilters = {
     search: sp.get("search") ?? undefined,
-    dateFrom: sp.get("dateFrom") ?? formatISO(subDays(new Date(), 7), { representation: "date" }),
-    dateTo: sp.get("dateTo") ?? formatISO(new Date(), { representation: "date" }),
+    dateFrom: sp.has("dateFrom")
+      ? (rawDateFrom || undefined)
+      : formatISO(subDays(new Date(), 7), { representation: "date" }),
+    dateTo: sp.has("dateTo")
+      ? (rawDateTo || undefined)
+      : formatISO(new Date(), { representation: "date" }),
     channel: (sp.get("channel") as CommunicationChannel) ?? undefined,
     type: (sp.get("commType") as CommunicationType) ?? undefined,
     status: (sp.get("status") as CommunicationStatus) ?? undefined,
@@ -75,7 +82,7 @@ export function LogTab() {
   );
 
   const clearFilters = () => {
-    router.replace("?tab=log", { scroll: false });
+    router.replace("?tab=log&dateFrom=&dateTo=", { scroll: false });
   };
 
   const totalPages = data ? Math.ceil(data.total / (filters.pageSize ?? 25)) : 0;

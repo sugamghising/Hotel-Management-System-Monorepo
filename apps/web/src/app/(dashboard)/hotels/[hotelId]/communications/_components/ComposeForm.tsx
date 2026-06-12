@@ -62,6 +62,7 @@ export function ComposeForm() {
 
   const [step, setStep] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [guestResults, setGuestResults] = useState<GuestListItem[]>([]);
   const [selectedGuest, setSelectedGuest] = useState<GuestListItem | null>(null);
   const [channel, setChannel] = useState<CommunicationChannel>("EMAIL");
@@ -73,28 +74,25 @@ export function ComposeForm() {
   const [scheduleMode, setScheduleMode] = useState<"now" | "later">("now");
   const [scheduleDate, setScheduleDate] = useState("");
   const [showPreview, setShowPreview] = useState(false);
-  const [debounceTimer, setDebounceTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const { data: guestListData } = useGuests(
-    searchTerm ? { search: searchTerm, limit: 10 } : undefined,
+    debouncedSearch.length >= 2 ? { search: debouncedSearch, limit: 10 } : undefined,
   );
 
   useEffect(() => {
-    if (debounceTimer) clearTimeout(debounceTimer);
-    if (searchTerm.length < 2) {
+    if (debouncedSearch.length < 2) {
       setGuestResults([]);
       return;
     }
-    const timer = setTimeout(() => {
-      if (guestListData?.guests) {
-        setGuestResults(guestListData.guests);
-      }
-    }, 300);
-    setDebounceTimer(timer);
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
-  }, [searchTerm, guestListData]);
+    if (guestListData?.guests) {
+      setGuestResults(guestListData.guests);
+    }
+  }, [debouncedSearch, guestListData]);
 
   useEffect(() => {
     if (selectedGuest) {

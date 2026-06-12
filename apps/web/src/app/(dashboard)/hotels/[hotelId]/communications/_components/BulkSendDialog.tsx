@@ -90,21 +90,26 @@ export function BulkSendDialog({ open, onOpenChange }: Props) {
     }
   }, [open]);
 
-  const audienceIds = (() => {
-    if (segment === "CUSTOM") return customGuestIds;
-    if (!allGuests?.guests) return [];
-    return allGuests.guests.map((g) => g.id);
+  const audienceGuests = (() => {
+    const guests = allGuests?.guests ?? [];
+    switch (segment) {
+      case "CUSTOM":
+        return guests.filter((g) => customGuestIds.includes(g.id));
+      case "VIP":
+        return guests.filter((g) => g.vipStatus !== "NONE");
+      case "WITH_EMAIL":
+        return guests.filter((g) => g.email);
+      case "WITH_MOBILE":
+        return guests.filter((g) => g.phone);
+      default:
+        return guests;
+    }
   })();
 
-  const audienceGuests = (() => {
-    if (segment === "CUSTOM") {
-      return (allGuests?.guests ?? []).filter((g) => customGuestIds.includes(g.id));
-    }
-    return allGuests?.guests ?? [];
-  })();
+  const audienceIds = segment === "CUSTOM" ? customGuestIds : audienceGuests.map((g) => g.id);
 
   const hasEmail = audienceGuests.filter((g) => g.email).length;
-  const hasMobile = audienceGuests.filter((g) => g.phone || g.email).length;
+  const hasMobile = audienceGuests.filter((g) => g.phone).length;
 
   const filteredTemplates = (templatesData?.templates ?? []).filter(
     (t) => t.channel === channel && t.isActive,

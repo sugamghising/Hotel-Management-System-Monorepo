@@ -195,7 +195,7 @@ export function TemplateEditorDialog({
         <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Welcome Email" />
       </div>
 
-      {!template && (
+      {(!template || isCreate) && (
         <>
           <div>
             <Label>Channel *</Label>

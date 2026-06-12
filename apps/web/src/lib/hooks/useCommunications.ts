@@ -268,14 +268,20 @@ export const useCommunicationStats = (
 
 // ─── Mutations ─────────────────────────────────────────────────────────────────
 
+const guardOrg = (orgId: string) => {
+  if (!orgId) throw new Error("Organization not configured");
+};
+
 export const useSendCommunication = () => {
   const qc = useQueryClient();
   const { orgId } = useCtx();
   return useMutation({
-    mutationFn: (input: SendCommunicationInput) =>
-      apiClient
+    mutationFn: (input: SendCommunicationInput) => {
+      guardOrg(orgId);
+      return apiClient
         .post(`/${orgId}/communications/send`, input)
-        .then((r) => r.data.data as Communication),
+        .then((r) => r.data.data as Communication);
+    },
     onSuccess: (_data, input) => {
       qc.invalidateQueries({ queryKey: ["comms", "log"] });
       if (input.guestId) {
@@ -293,10 +299,12 @@ export const useBulkSend = () => {
   const qc = useQueryClient();
   const { orgId } = useCtx();
   return useMutation({
-    mutationFn: (input: BulkSendInput) =>
-      apiClient
+    mutationFn: (input: BulkSendInput) => {
+      guardOrg(orgId);
+      return apiClient
         .post(`/${orgId}/communications/send/bulk`, input)
-        .then((r) => r.data.data as { count: number }),
+        .then((r) => r.data.data as { count: number });
+    },
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["comms", "log"] });
       qc.invalidateQueries({ queryKey: ["comms", "stats"] });
@@ -311,10 +319,12 @@ export const useCreateTemplate = () => {
   const qc = useQueryClient();
   const { orgId } = useCtx();
   return useMutation({
-    mutationFn: (input: CreateTemplateInput) =>
-      apiClient
+    mutationFn: (input: CreateTemplateInput) => {
+      guardOrg(orgId);
+      return apiClient
         .post(`/${orgId}/communications/templates`, input)
-        .then((r) => r.data.data as CommunicationTemplate),
+        .then((r) => r.data.data as CommunicationTemplate);
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["comms", "templates"] });
       toast.success("Template created");
@@ -334,10 +344,12 @@ export const useUpdateTemplate = () => {
     }: {
       templateId: string;
       input: UpdateTemplateInput;
-    }) =>
-      apiClient
+    }) => {
+      guardOrg(orgId);
+      return apiClient
         .patch(`/${orgId}/communications/templates/${templateId}`, input)
-        .then((r) => r.data.data as CommunicationTemplate),
+        .then((r) => r.data.data as CommunicationTemplate);
+    },
     onSuccess: (_data, { templateId }) => {
       qc.invalidateQueries({ queryKey: ["comms", "templates"] });
       qc.invalidateQueries({
@@ -354,8 +366,10 @@ export const useDeleteTemplate = () => {
   const qc = useQueryClient();
   const { orgId } = useCtx();
   return useMutation({
-    mutationFn: ({ templateId }: { templateId: string }) =>
-      apiClient.delete(`/${orgId}/communications/templates/${templateId}`),
+    mutationFn: ({ templateId }: { templateId: string }) => {
+      guardOrg(orgId);
+      return apiClient.delete(`/${orgId}/communications/templates/${templateId}`);
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["comms", "templates"] });
       toast.success("Template deleted");
@@ -369,8 +383,10 @@ export const useResendCommunication = () => {
   const qc = useQueryClient();
   const { orgId } = useCtx();
   return useMutation({
-    mutationFn: ({ communicationId }: { communicationId: string }) =>
-      apiClient.post(`/${orgId}/communications/${communicationId}/resend`),
+    mutationFn: ({ communicationId }: { communicationId: string }) => {
+      guardOrg(orgId);
+      return apiClient.post(`/${orgId}/communications/${communicationId}/resend`);
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["comms", "log"] });
       toast.success("Message resent");
