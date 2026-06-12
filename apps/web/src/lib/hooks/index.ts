@@ -13,6 +13,7 @@ export * from "./useReservations";
 
 export * from "./usePOS";
 export * from "./useHotelSettings";
+export * from "./useInventory";
 export * from "./useOrgSettings";
 export * from "./useChannelManager";
 export {
