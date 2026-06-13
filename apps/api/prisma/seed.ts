@@ -57,16 +57,6 @@ function formatDate(d: Date) {
   return d.toISOString().slice(0, 10);
 }
 
-let confirmSeq = 0;
-function genConfirmation() {
-  const now = new Date();
-  const yy = String(now.getFullYear()).slice(2);
-  const mm = String(now.getMonth() + 1).padStart(2, "0");
-  const dd = String(now.getDate()).padStart(2, "0");
-  confirmSeq++;
-  return `DEMO${yy}${mm}${dd}${String(confirmSeq).padStart(3, "0")}`;
-}
-
 // ─── Main Seed Function ───────────────────────────────────────────────────────
 
 async function main() {
@@ -1052,7 +1042,7 @@ async function main() {
   const dlxBarRate = 259;
 
   const res1 = await prisma.reservation.upsert({
-    where: { confirmationNumber: genConfirmation() },
+    where: { confirmationNumber: `DEMO${formatDate(today()).replace(/-/g, "")}001` },
     update: {},
     create: {
       organizationId: org.id,
@@ -1722,4 +1712,5 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect();
+    await pool.end();
   });

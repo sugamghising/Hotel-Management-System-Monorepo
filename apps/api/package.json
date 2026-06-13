@@ -19,7 +19,7 @@
     "db:migrate": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma migrate reset --force",
-    "db:views": "prisma db execute --file prisma/migrations/views.sql",
+    "db:views": "prisma db execute --file prisma/views.sql",
     "db:setup": "prisma migrate deploy && pnpm db:views && pnpm db:seed",
     "db:fresh": "prisma migrate reset --force && pnpm db:views && pnpm db:seed",
     "typecheck": "prisma generate && tsc --noEmit --declaration false --declarationMap false",
