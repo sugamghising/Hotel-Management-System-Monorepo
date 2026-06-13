@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createRateLimiter, validate } from '../../core';
+import { loginLimiter, passwordResetLimiter, validate } from '../../core';
 import { authMiddleware } from '../../core/middleware/auth';
 import { AuthController } from './auth.controller';
 import {
@@ -17,15 +17,8 @@ import {
 const router = Router();
 const controller = new AuthController();
 
-// Stricter rate limiting for login endpoint
-const loginRateLimiter = createRateLimiter({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 requests per window
-  message: 'Too many login attempts, please try again later',
-});
-
 //Routes
-router.post('/login', loginRateLimiter, validate({ body: LoginSchema }), controller.login);
+router.post('/login', loginLimiter, validate({ body: LoginSchema }), controller.login);
 router.post('/register', validate({ body: RegisterSchema }), controller.register);
 router.post('/logout', validate({ body: LogoutSchema }), controller.logout);
 
@@ -33,6 +26,7 @@ router.post('/refresh', validate({ body: RefreshTokenSchema }), controller.refre
 
 router.post(
   '/forgot-password',
+  passwordResetLimiter,
   validate({ body: ForgotPasswordSchema }),
   controller.forgotPassword
 );

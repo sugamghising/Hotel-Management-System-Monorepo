@@ -1,34 +1,73 @@
 import { openAPIRouter } from '@/api-docs/openAPIRouter';
-import { errorHandler, notFoundHandler, rateLimiter, requestLogger } from '@/core/index';
 import { routes } from '@/routes/registerRoutes';
-import cors from 'cors';
-import express, { type Application } from 'express';
-import helmet from 'helmet';
-import { config } from './config';
+import express, { type Application, type NextFunction, type Request, type Response } from 'express';
+import { logger } from './core/logger';
+import {
+  apiLimiter,
+  auditLogMiddleware,
+  corsMiddleware,
+  errorHandler,
+  injectionGuard,
+  ipBanCheck,
+  notFoundHandler,
+  preventParamPollution,
+  requestId,
+  requestSizeLimiter,
+  securityHeaders,
+} from './core';
 
 export const createApp = (): Application => {
   const app = express();
 
-  // Security middleware
-  app.use(helmet());
-  app.use(
-    cors({
-      origin: config.cors.origin,
-      credentials: true,
-    })
-  );
+  // 1. IP ban check — reject banned IPs immediately
+  app.use(ipBanCheck());
 
-  // Rate limiting
-  app.use(rateLimiter);
+  // 2. Request ID — attach to every request
+  app.use(requestId());
 
-  // Body parsing
-  app.use(express.json({ limit: '10mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+  // 3. Security headers
+  app.use(securityHeaders());
 
-  // Request logging
-  app.use(requestLogger);
+  // 4. CORS — handle preflight
+  app.use(corsMiddleware());
 
-  // API Documentation (zod-to-openapi)
+  // 5–6. Body parsing
+  app.use(express.json({ limit: '500kb' }));
+  app.use(express.urlencoded({ extended: true, limit: '100kb' }));
+
+  // 7. Post-parse size check
+  app.use(requestSizeLimiter());
+
+  // 8. Parameter pollution prevention
+  app.use(preventParamPollution());
+
+  // 9. Injection guard
+  app.use(injectionGuard());
+
+  // 10. Global per-user rate limit
+  app.use(apiLimiter);
+
+  // 11. Audit log middleware — intercepts responses
+  app.use(auditLogMiddleware());
+
+  // 12. Request logging (after security, before routes)
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    res.on('finish', () => {
+      const duration = Date.now() - req.startTime;
+      logger.info({
+        requestId: req.requestId,
+        method: req.method,
+        path: req.path,
+        status: res.statusCode,
+        duration,
+        ip: req.ip,
+        userId: (req as any).user?.sub ?? null,
+      });
+    });
+    next();
+  });
+
+  // API Documentation
   app.use('/api-docs', openAPIRouter);
 
   // Routes
