@@ -21,7 +21,7 @@ export const config = {
 
   rateLimit: {
     windowMs: env.RATE_LIMIT_WINDOW_MS,
-    maxRequests: env.RATE_LIMIT_MAX_REQUESTS,
+    maxRequests: env.RATE_LIMIT_MAX,
   },
 
   logging: {
