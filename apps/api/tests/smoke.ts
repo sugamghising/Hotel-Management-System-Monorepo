@@ -687,5 +687,47 @@ runner.step('GUESTS: GET guest statistics', async () => {
   log(`  \u2192 Total guests: ${body.data.stats.totalGuests}`);
 });
 
+// ────────────────────────────────────────────────────
+// STEP 21 — Security layer verification
+// ────────────────────────────────────────────────────
+
+runner.step('SECURITY: Headers present', async () => {
+  const res = await fetch(`${BASE_URL}/health`);
+  expect(res.headers.get('x-content-type-options')).toBe('nosniff');
+  expect(res.headers.get('x-frame-options')).toBe('DENY');
+  expect(res.headers.get('x-request-id')).toBeTruthy();
+  expect(res.headers.get('x-powered-by')).toBe(null);
+  log('  \u2192 Security headers: OK');
+});
+
+runner.step('SECURITY: Rate limit headers', async () => {
+  const res = await fetch(`${BASE_URL}/health`);
+  expect(res.headers.get('x-ratelimit-limit')).toBeTruthy();
+  log('  \u2192 Rate limit headers: OK');
+});
+
+runner.step('SECURITY: Injection guard', async () => {
+  const res = await fetch(`${API}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: { '$gt': '' },
+      password: 'test',
+      organizationCode: 'DEMO',
+    }),
+  });
+  expect(res.status).toBe(400);
+  log('  \u2192 Injection guard: blocking $ operator');
+});
+
+runner.step('SECURITY: CORS rejects unknown origin', async () => {
+  const res = await fetch(`${BASE_URL}/health`, {
+    headers: { Origin: 'https://evil.com' },
+  });
+  const acao = res.headers.get('access-control-allow-origin');
+  expect(acao === null || acao !== 'https://evil.com').toBeTruthy();
+  log('  \u2192 CORS: unknown origin rejected');
+});
+
 // Run all tests
 runner.run();

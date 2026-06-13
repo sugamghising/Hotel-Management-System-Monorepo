@@ -1,3 +1,4 @@
+import { auditService } from '../../core/services/audit.service';
 import {
   BadRequestError,
   ConflictError,
@@ -729,6 +730,16 @@ export class ReservationsService {
       earlyCheckIn: resolvedInput.earlyCheckIn,
     });
 
+    auditService.logAsync({
+      action: 'RESERVATION_CHECK_IN',
+      organizationId,
+      userId: _checkedInBy,
+      resourceType: 'RESERVATION',
+      resourceId: id,
+      riskLevel: 'MEDIUM',
+      metadata: { confirmationNumber: reservation.confirmationNumber, roomId },
+    });
+
     return this.findById(id, organizationId);
   }
 
@@ -834,6 +845,16 @@ export class ReservationsService {
     logger.info(`Guest checked out: ${reservation.confirmationNumber}`, {
       reservationId: id,
       lateCheckOut: input.lateCheckOut,
+    });
+
+    auditService.logAsync({
+      action: 'RESERVATION_CHECK_OUT',
+      organizationId,
+      userId: _checkedOutBy,
+      resourceType: 'RESERVATION',
+      resourceId: id,
+      riskLevel: 'MEDIUM',
+      metadata: { confirmationNumber: reservation.confirmationNumber, lateCheckOut: input.lateCheckOut },
     });
 
     return this.findById(id, organizationId);
@@ -1050,6 +1071,16 @@ export class ReservationsService {
       fee,
     });
 
+    auditService.logAsync({
+      action: 'RESERVATION_CANCEL',
+      organizationId,
+      userId: cancelledBy,
+      resourceType: 'RESERVATION',
+      resourceId: id,
+      riskLevel: 'HIGH',
+      metadata: { confirmationNumber: reservation.confirmationNumber, reason, fee },
+    });
+
     return this.findById(id, organizationId);
   }
 
@@ -1115,6 +1146,16 @@ export class ReservationsService {
     logger.info(`No-show marked: ${reservation.confirmationNumber}`, {
       reservationId: id,
       chargeFee: input.chargeNoShowFee,
+    });
+
+    auditService.logAsync({
+      action: 'RESERVATION_NO_SHOW',
+      organizationId,
+      userId: _markedBy,
+      resourceType: 'RESERVATION',
+      resourceId: id,
+      riskLevel: 'HIGH',
+      metadata: { confirmationNumber: reservation.confirmationNumber, chargeFee: input.chargeNoShowFee },
     });
 
     return this.findById(id, organizationId);

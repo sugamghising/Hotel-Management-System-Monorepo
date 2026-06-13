@@ -1,4 +1,5 @@
 import { config } from '../../config';
+import { auditService } from '../../core/services/audit.service';
 import { BadRequestError, ConflictError, ForbiddenError, NotFoundError } from '../../core/errors';
 import { logger } from '../../core/logger';
 import { prisma } from '../../database/prisma';
@@ -503,6 +504,16 @@ export class FolioService {
       reason,
     });
 
+    auditService.logAsync({
+      action: 'FOLIO_VOID',
+      organizationId,
+      userId: voidedBy,
+      resourceType: 'FOLIO_ITEM',
+      resourceId: itemId,
+      riskLevel: 'HIGH',
+      metadata: { amount: item.amount.toString(), reason, reservationId: item.reservationId },
+    });
+
     return voided as FolioItem;
   }
 
@@ -696,6 +707,16 @@ export class FolioService {
       paymentId: payment.id,
     });
 
+    auditService.logAsync({
+      action: 'PAYMENT_CREATE',
+      organizationId,
+      userId: processedBy,
+      resourceType: 'PAYMENT',
+      resourceId: payment.id,
+      riskLevel: 'MEDIUM',
+      metadata: { reservationId, amount: input.amount, method: input.method },
+    });
+
     return this.mapPaymentToResponse(updated);
   }
 
@@ -773,6 +794,16 @@ export class FolioService {
       refundId: refund.id,
     });
 
+    auditService.logAsync({
+      action: 'PAYMENT_REFUND',
+      organizationId,
+      userId: processedBy,
+      resourceType: 'PAYMENT',
+      resourceId: paymentId,
+      riskLevel: 'HIGH',
+      metadata: { refundId: refund.id, amount: input.amount, reason: input.reason },
+    });
+
     return this.mapPaymentToResponse(refund);
   }
 
@@ -808,6 +839,16 @@ export class FolioService {
     await this.folioRepo.voidPayment(paymentId);
 
     logger.warn('Payment voided', { paymentId: paymentId, voidedBy: _voidedBy });
+
+    auditService.logAsync({
+      action: 'PAYMENT_VOID',
+      organizationId,
+      userId: _voidedBy,
+      resourceType: 'PAYMENT',
+      resourceId: paymentId,
+      riskLevel: 'HIGH',
+      metadata: { originalAmount: payment.amount.toString() },
+    });
   }
 
   // ============================================================================
@@ -888,6 +929,16 @@ export class FolioService {
       reservationId,
       invoiceId: invoice.id,
       total: subtotal + taxTotal,
+    });
+
+    auditService.logAsync({
+      action: 'INVOICE_CREATE',
+      organizationId,
+      userId: _createdBy,
+      resourceType: 'INVOICE',
+      resourceId: invoice.id,
+      riskLevel: 'MEDIUM',
+      metadata: { invoiceNumber, reservationId, total: subtotal + taxTotal },
     });
 
     return this.mapInvoiceToResponse(invoice);

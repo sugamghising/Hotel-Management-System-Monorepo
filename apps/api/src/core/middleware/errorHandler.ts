@@ -7,31 +7,40 @@ import { logger } from '../logger/index';
 
 export const errorHandler = (
   err: Error,
-  _req: Request,
+  req: Request,
   res: Response<ErrorResponse>,
   _next: NextFunction
 ): void => {
-  // Log the error
+  const requestId = req.requestId ?? '';
+
   logger.error(`Error: ${err.message}`, {
+    requestId,
     stack: err.stack,
     name: err.name,
+    path: req.path,
+    method: req.method,
   });
 
-  // Handle Zod validation errors
+  const addRequestId = (response: ErrorResponse): ErrorResponse => {
+    (response as any).requestId = requestId;
+    return response;
+  };
+
   if (err instanceof ZodError) {
-    res.status(StatusCodes.BAD_REQUEST).json({
-      success: false,
-      error: {
-        message: 'Validation failed',
-        code: 'VALIDATION_ERROR',
-        statusCode: StatusCodes.BAD_REQUEST,
-        details: err.flatten(),
-      },
-    });
+    res.status(StatusCodes.BAD_REQUEST).json(
+      addRequestId({
+        success: false,
+        error: {
+          message: 'Validation failed',
+          code: 'VALIDATION_ERROR',
+          statusCode: StatusCodes.BAD_REQUEST,
+          details: err.flatten(),
+        },
+      })
+    );
     return;
   }
 
-  // Handle known operational errors
   if (err instanceof AppError) {
     const response: ErrorResponse = {
       success: false,
@@ -43,42 +52,42 @@ export const errorHandler = (
       },
     };
 
-    // Avoid exposing internals for operational/domain errors.
     if (config.isDevelopment && !err.isOperational) {
       response.error.stack = err.stack;
     }
 
-    res.status(err.statusCode).json(response);
+    res.status(err.statusCode).json(addRequestId(response));
     return;
   }
 
-  // Handle syntax errors in JSON body
   if (err instanceof SyntaxError && 'body' in err) {
-    res.status(StatusCodes.BAD_REQUEST).json({
-      success: false,
-      error: {
-        message: 'Invalid JSON payload',
-        code: 'INVALID_JSON',
-        statusCode: StatusCodes.BAD_REQUEST,
-      },
-    });
+    res.status(StatusCodes.BAD_REQUEST).json(
+      addRequestId({
+        success: false,
+        error: {
+          message: 'Invalid JSON payload',
+          code: 'INVALID_JSON',
+          statusCode: StatusCodes.BAD_REQUEST,
+        },
+      })
+    );
     return;
   }
 
-  // Handle multipart parser errors from multer
   if (err.name === 'MulterError') {
-    res.status(StatusCodes.BAD_REQUEST).json({
-      success: false,
-      error: {
-        message: err.message,
-        code: 'BAD_REQUEST',
-        statusCode: StatusCodes.BAD_REQUEST,
-      },
-    });
+    res.status(StatusCodes.BAD_REQUEST).json(
+      addRequestId({
+        success: false,
+        error: {
+          message: err.message,
+          code: 'BAD_REQUEST',
+          statusCode: StatusCodes.BAD_REQUEST,
+        },
+      })
+    );
     return;
   }
 
-  // Handle unknown errors (don't leak details in production)
   const statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
   const response: ErrorResponse = {
     success: false,
@@ -93,5 +102,5 @@ export const errorHandler = (
     response.error.stack = err.stack;
   }
 
-  res.status(statusCode).json(response);
+  res.status(statusCode).json(addRequestId(response));
 };
