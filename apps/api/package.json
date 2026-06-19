@@ -26,6 +26,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:smoke": "tsx tests/smoke.ts",
+    "test:smoke:verbose": "tsx tests/smoke.ts --verbose",
     "prepare": "husky"
   },
   "keywords": [

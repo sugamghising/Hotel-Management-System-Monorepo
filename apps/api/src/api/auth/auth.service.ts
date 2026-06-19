@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import QRCode from "qrcode";
 import speakeasy from "speakeasy";
 import { config } from "../../config";
+import { auditService } from "../../core/services/audit.service";
 import {
   ConflictError,
   ForbiddenError,
@@ -134,6 +135,15 @@ export class AuthService {
         `Invalid password attempt for email: ${input.email} in organization: ${input.organizationCode}`,
       );
       await this.handleFailedLogin(user);
+      auditService.logAsync({
+        action: 'AUTH_LOGIN_FAILED',
+        organizationId: org.id,
+        userEmail: input.email,
+        resourceType: 'SESSION',
+        ipAddress,
+        riskLevel: 'MEDIUM',
+        metadata: { reason: 'INVALID_PASSWORD', attempts: user.failedLoginAttempts + 1 },
+      });
       throw new UnauthorizedError("Invalid credentials");
     }
 
@@ -182,6 +192,17 @@ export class AuthService {
     );
 
     await this.authRepo.recordSuccessfulLogin(user.id, ipAddress);
+
+    auditService.logAsync({
+      action: 'AUTH_LOGIN',
+      organizationId: org.id,
+      userId: user.id,
+      userEmail: user.email,
+      resourceType: 'SESSION',
+      ipAddress,
+      riskLevel: 'LOW',
+      metadata: { deviceName: input.deviceName, mfaUsed: user.mfaEnabled },
+    });
 
     logger.info(`User logged in: ${user.email}`, {
       userId: user.id,
@@ -686,12 +707,24 @@ export class AuthService {
    */
   private async handleFailedLogin(user: User): Promise<void> {
     const attempts = user.failedLoginAttempts + 1;
-    const lockedUntil =
-      attempts >= 5
-        ? new Date(Date.now() + 30 * 60000) // 30 min lock
-        : undefined;
+    const wasLocked = attempts >= 5;
+    const lockedUntil = wasLocked
+      ? new Date(Date.now() + 30 * 60000) // 30 min lock
+      : undefined;
 
     await this.authRepo.updateLoginAttempts(user.id, attempts, lockedUntil);
+
+    if (wasLocked) {
+      auditService.logAsync({
+        action: 'ACCOUNT_LOCKED',
+        organizationId: user.organizationId,
+        userId: user.id,
+        userEmail: user.email,
+        resourceType: 'SESSION',
+        riskLevel: 'HIGH',
+        metadata: { reason: 'MAX_FAILED_ATTEMPTS', attempts },
+      });
+    }
   }
 
   /**

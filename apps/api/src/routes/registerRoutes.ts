@@ -1,6 +1,7 @@
 import { healthRoutes, userRoutes } from "@api/index";
 import { config } from "@config/index";
 import { Router } from "express";
+import { heavyLimiter, writeLimiter } from "../core";
 import { authRoutes } from "../api/auth";
 import { channelRoutes, channelWebhookRoutes } from "../api/channelManager";
 import { checkinCheckoutRoutes } from "../api/checkinCheckout";
@@ -44,6 +45,32 @@ if (process.env["NODE_ENV"] !== "production") {
 
 // API v1 routes
 const v1Router = Router();
+
+// Heavy operation rate limiters (specific routes)
+const heavyOperationGuard: import('express').RequestHandler = (req, res, next) => {
+  const path = req.path;
+  const isHeavy =
+    path.endsWith('/channels/push') ||
+    path.includes('/reports/') ||
+    path.endsWith('/housekeeping/tasks/auto-generate') ||
+    path.endsWith('/inventory/physical-count') ||
+    path.endsWith('/communications/send/bulk');
+  if (isHeavy) {
+    return heavyLimiter(req, res, next);
+  }
+  next();
+};
+
+// Write operation catch-all rate limiter (applies to POST/PATCH/PUT/DELETE)
+const writeOperationGuard: import('express').RequestHandler = (req, res, next) => {
+  if (['POST', 'PATCH', 'PUT', 'DELETE'].includes(req.method)) {
+    return writeLimiter(req, res, next);
+  }
+  next();
+};
+
+v1Router.use(heavyOperationGuard);
+v1Router.use(writeOperationGuard);
 v1Router.use("/users", userRoutes);
 v1Router.use("/organizations", organizationRoutes);
 v1Router.use("/auth", authRoutes);
