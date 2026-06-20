@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "prisma generate && tsup",
-    "start": "node dist/server.js",
+    "start": "node dist/server.cjs",
     "lint": "biome lint src tests",
     "lint:fix": "biome lint --write src tests",
     "format": "biome format --write src tests",
