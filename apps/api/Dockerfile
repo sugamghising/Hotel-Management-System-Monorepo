@@ -67,7 +67,7 @@ COPY --from=builder /app/apps/api/dist ./apps/api/dist
 RUN cd apps/api && pnpm exec prisma generate
 
 # Create logs directory and set ownership of writable paths only
-RUN mkdir -p logs && chown -R nodejs:nodejs logs
+RUN mkdir -p apps/api/logs && chown -R nodejs:nodejs apps/api/logs
 
 # Switch to non-root user
 USER nodejs
