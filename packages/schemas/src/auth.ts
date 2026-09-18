@@ -62,12 +62,12 @@ export const RegisterSchema = z.object({
 });
 
 export const RefreshTokenSchema = z.object({
-  refreshToken: z.string().min(1, 'Refresh token is required'),
+  refreshToken: z.string().min(1, 'Refresh token is required').optional(),
   deviceFingerprint: z.string().optional(),
 });
 
 export const LogoutSchema = z.object({
-  refreshToken: z.string().min(1, 'Refresh token is required'),
+  refreshToken: z.string().min(1, 'Refresh token is required').optional(),
 });
 
 export const ChangePasswordSchema = z.object({
@@ -92,7 +92,8 @@ export const SetupMfaSchema = z.object({
 
 export const VerifyMfaSchema = z.object({
   code: MfaCodeSchema,
-  tempToken: z.string().optional(), // For initial setup verification
+  secret: z.string().min(1, 'MFA secret is required'),
+  tempToken: z.string().optional(),
 });
 
 export const DisableMfaSchema = z.object({

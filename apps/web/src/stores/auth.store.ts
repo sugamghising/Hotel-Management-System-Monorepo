@@ -27,7 +27,6 @@ interface AuthState {
   organizationId: string | null;
   organizationCode: string | null;
   isAuthenticated: boolean;
-  refreshToken: string | null;
   _hydrated: boolean;
 
   // Actions
@@ -36,10 +35,9 @@ interface AuthState {
     orgId: string,
     orgCode: string,
     accessToken: string,
-    refreshToken: string,
   ) => void;
   setActiveHotel: (hotel: ActiveHotel) => void;
-  updateTokens: (accessToken: string, refreshToken: string) => void;
+  updateTokens: (accessToken: string) => void;
   logout: () => void;
 
   // Permission check
@@ -50,7 +48,6 @@ interface AuthState {
 
 // In-memory access token — prefer memory but allow short-lived sessionStorage fallback
 let _accessToken: string | null = null;
-let _refreshToken: string | null = null;
 
 export const getAccessToken = () => {
   // Priority 1: in-memory
@@ -70,23 +67,8 @@ export const getAccessToken = () => {
   return null;
 };
 
-export const getRefreshToken = () => {
-  // Priority 1: Memory (Fastest)
-  if (_refreshToken) return _refreshToken;
-
-  // Priority 2: Zustand Persisted State
-  const persistedRefreshToken = useAuthStore.getState().refreshToken;
-  if (persistedRefreshToken) {
-    _refreshToken = persistedRefreshToken;
-    return persistedRefreshToken;
-  }
-
-  return null;
-};
-
-export const setTokens = (accessToken: string, refreshToken: string) => {
+export const setTokens = (accessToken: string) => {
   _accessToken = accessToken;
-  _refreshToken = refreshToken;
   try {
     if (typeof window !== "undefined") {
       sessionStorage.setItem("hms_access", accessToken);
@@ -98,7 +80,6 @@ export const setTokens = (accessToken: string, refreshToken: string) => {
 
 export const clearTokens = () => {
   _accessToken = null;
-  _refreshToken = null;
   try {
     if (typeof window !== "undefined") {
       sessionStorage.removeItem("hms_access");
@@ -138,17 +119,15 @@ export const useAuthStore = create<AuthState>()(
       organizationId: null,
       organizationCode: null,
       isAuthenticated: false,
-      refreshToken: null,
       _hydrated: false,
 
-      setAuth: (user, orgId, orgCode, accessToken, refreshToken) => {
-        setTokens(accessToken, refreshToken);
+      setAuth: (user, orgId, orgCode, accessToken) => {
+        setTokens(accessToken);
         set({
           user,
           organizationId: orgId,
           organizationCode: orgCode,
           isAuthenticated: true,
-          refreshToken,
         });
       },
 
@@ -156,22 +135,18 @@ export const useAuthStore = create<AuthState>()(
         set({ activeHotel: hotel });
       },
 
-      updateTokens: (accessToken, refreshToken) => {
-        setTokens(accessToken, refreshToken);
+      updateTokens: (accessToken) => {
+        setTokens(accessToken);
       },
 
       logout: () => {
         clearTokens();
-        if (typeof document !== "undefined") {
-          document.cookie = "hms_refresh=; path=/; max-age=0";
-        }
         set({
           user: null,
           activeHotel: null,
           organizationId: null,
           organizationCode: null,
           isAuthenticated: false,
-          refreshToken: null,
         });
       },
 
@@ -206,7 +181,6 @@ export const useAuthStore = create<AuthState>()(
         organizationId: state.organizationId,
         organizationCode: state.organizationCode,
         activeHotel: state.activeHotel,
-        refreshToken: state.refreshToken,
         user: state.user
           ? {
               id: state.user.id,

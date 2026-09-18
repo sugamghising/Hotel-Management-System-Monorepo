@@ -78,13 +78,8 @@ export default function LoginPage() {
         throw new Error("Could not extract organization ID from token");
       }
 
-      // Store both tokens in memory
-      setTokens(result.tokens.accessToken, result.tokens.refreshToken);
+      setTokens(result.tokens.accessToken);
 
-      // Set the refresh token cookie for Next.js middleware
-      document.cookie = `hms_refresh=${encodeURIComponent(result.tokens.refreshToken)}; path=/; SameSite=Lax; max-age=${7 * 24 * 60 * 60}`;
-
-      // Build user object from response
       const user = {
         id: result.user.id,
         email: result.user.email,
@@ -100,7 +95,6 @@ export default function LoginPage() {
         orgId,
         values.organizationCode.toUpperCase(),
         result.tokens.accessToken,
-        result.tokens.refreshToken,
       );
 
       toast.success(`Welcome back, ${result.user.firstName}!`);

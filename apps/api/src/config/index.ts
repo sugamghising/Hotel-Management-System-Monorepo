@@ -30,6 +30,7 @@ export const config = {
 
   cors: {
     origin: env.CORS_ORIGIN,
+    origins: env.CORS_ORIGINS,
   },
 
   jwt: {

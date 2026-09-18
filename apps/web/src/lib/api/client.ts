@@ -3,15 +3,9 @@ import axios, {
   AxiosError,
   InternalAxiosRequestConfig,
 } from "axios";
-import {
-  getAccessToken,
-  setTokens,
-  useAuthStore,
-  getRefreshToken,
-} from "@/stores/auth.store";
+import { getAccessToken, setTokens, useAuthStore } from "@/stores/auth.store";
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -88,21 +82,14 @@ apiClient.interceptors.response.use(
     isRefreshing = true;
 
     try {
-      // Refresh token is stored in Zustand state (persisted to localStorage)
-      const currentRefreshToken = getRefreshToken();
-
-      if (!currentRefreshToken) {
-        throw new Error("No refresh token available");
-      }
-
       const { data } = await axios.post(
         `${BASE_URL}/auth/refresh`,
-        { refreshToken: currentRefreshToken },
-        { headers: { "Content-Type": "application/json" } },
+        {},
+        { headers: { "Content-Type": "application/json" }, withCredentials: true },
       );
-      const { accessToken, refreshToken } = data.data.tokens;
+      const { accessToken } = data.data.tokens;
 
-      setTokens(accessToken, refreshToken);
+      setTokens(accessToken);
       flushQueue(accessToken);
 
       original.headers.Authorization = `Bearer ${accessToken}`;

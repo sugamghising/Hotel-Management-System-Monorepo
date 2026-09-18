@@ -48,20 +48,16 @@ export function securityHeaders(): RequestHandler {
 // ═══════════════════════════════════════════
 
 export function corsMiddleware(): RequestHandler {
-  const allowedOrigins: string[] = (
-    process.env['CORS_ORIGINS']?.split(',').map((o) => o.trim()) ?? []
-  );
-
-  if (process.env['NODE_ENV'] === 'development' && allowedOrigins.length === 0) {
-    allowedOrigins.push('*');
-  }
-
-  const allowAll = allowedOrigins.includes('*');
+  const fromOrigins =
+    process.env['CORS_ORIGINS']?.split(',').map((origin) => origin.trim()).filter(Boolean) ?? [];
+  const fromOrigin =
+    process.env['CORS_ORIGIN']?.split(',').map((origin) => origin.trim()).filter(Boolean) ?? [];
+  const allowedOrigins = [...fromOrigins, ...fromOrigin].filter((origin) => origin !== '*');
 
   return (req: Request, res: Response, next: NextFunction) => {
     const origin = req.headers['origin'];
 
-    if (origin && (allowAll || allowedOrigins.includes(origin))) {
+    if (origin && allowedOrigins.includes(origin)) {
       res.setHeader('Access-Control-Allow-Origin', origin);
       res.setHeader('Vary', 'Origin');
       res.setHeader('Access-Control-Allow-Credentials', 'true');

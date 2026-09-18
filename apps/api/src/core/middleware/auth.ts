@@ -24,7 +24,10 @@ export const authMiddleware = async (req: Request, _res: Response, next: NextFun
 
   try {
     const secret = new TextEncoder().encode(config.jwt.accessSecret);
-    const { payload } = await jwtVerify(token, secret);
+    const { payload } = await jwtVerify(token, secret, {
+      issuer: 'hms-api',
+      audience: 'hms-client',
+    });
     req.user = payload as unknown as AccessTokenPayload;
     next();
   } catch {

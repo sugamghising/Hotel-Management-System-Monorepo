@@ -26,8 +26,8 @@ const envSchema = z.object({
   // Logging
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'http', 'debug']).default('info'),
 
-  // CORS
-  CORS_ORIGIN: z.string().default('*'),
+  CORS_ORIGIN: z.string().default('http://localhost:3001'),
+  CORS_ORIGINS: z.string().optional(),
 
   // Database
   DATABASE_URL: z.string().url('Invalid DATABASE_URL'),

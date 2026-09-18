@@ -9,6 +9,11 @@ import type {
   VerifyMfaInput,
 } from "./auth.schema";
 import { authService } from "./auth.service";
+import {
+  clearRefreshCookie,
+  getRefreshTokenFromRequest,
+  setRefreshCookie,
+} from "./refresh-cookie";
 import type {
   ChangePasswordInput,
   LoginInput,
@@ -55,11 +60,20 @@ export class AuthController {
         return;
       }
 
+      if (result.tokens) {
+        setRefreshCookie(res, result.tokens.refreshToken);
+      }
+
       handleServiceResponse(
         ServiceResponse.success(
           {
             user: result.user,
-            tokens: result.tokens,
+            tokens: result.tokens
+              ? {
+                  accessToken: result.tokens.accessToken,
+                  expiresIn: result.tokens.expiresIn,
+                }
+              : undefined,
           },
           "Login successful",
         ),
@@ -104,13 +118,23 @@ export class AuthController {
   refresh = asyncHandler(
     async (req: Request, res: Response, _next: NextFunction) => {
       const input = req.body as RefreshTokenInput;
+      const refreshToken = getRefreshTokenFromRequest(req, input.refreshToken);
+      if (!refreshToken) {
+        throw new UnauthorizedError("Refresh token is required");
+      }
       const tokens = await authService.refreshToken(
-        input.refreshToken,
+        refreshToken,
         input.deviceFingerprint,
       );
+      setRefreshCookie(res, tokens.refreshToken);
       handleServiceResponse(
         ServiceResponse.success(
-          { tokens },
+          {
+            tokens: {
+              accessToken: tokens.accessToken,
+              expiresIn: tokens.expiresIn,
+            },
+          },
           "Token refreshed successfully",
         ),
         res,
@@ -131,8 +155,12 @@ export class AuthController {
    */
   logout = asyncHandler(
     async (req: Request, res: Response, _next: NextFunction) => {
-      const { refreshToken } = req.body;
-      await authService.logout(refreshToken);
+      const { refreshToken } = req.body as { refreshToken?: string };
+      const token = getRefreshTokenFromRequest(req, refreshToken);
+      if (token) {
+        await authService.logout(token);
+      }
+      clearRefreshCookie(res);
       handleServiceResponse(
         ServiceResponse.success(
           { message: "Logged out successfully" },
@@ -161,6 +189,7 @@ export class AuthController {
         throw new UnauthorizedError("User not authenticated");
       }
       await authService.logoutAll(req.user.user.id, refreshToken);
+      clearRefreshCookie(res);
       handleServiceResponse(
         ServiceResponse.success(
           {

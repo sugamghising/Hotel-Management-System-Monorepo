@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { loginLimiter, passwordResetLimiter, validate } from '../../core';
+import { PERMISSIONS } from '../../core/constants/permission';
 import { authMiddleware } from '../../core/middleware/auth';
+import { requirePermission } from '../../core/middleware/requirePermission';
 import { AuthController } from './auth.controller';
 import {
   ChangePasswordSchema,
@@ -17,9 +19,7 @@ import {
 const router = Router();
 const controller = new AuthController();
 
-//Routes
 router.post('/login', loginLimiter, validate({ body: LoginSchema }), controller.login);
-router.post('/register', validate({ body: RegisterSchema }), controller.register);
 router.post('/logout', validate({ body: LogoutSchema }), controller.logout);
 
 router.post('/refresh', validate({ body: RefreshTokenSchema }), controller.refresh);
@@ -32,8 +32,14 @@ router.post(
 );
 router.post('/reset-password', validate({ body: ResetPasswordSchema }), controller.resetPassword);
 
-// Protected routes
 router.use(authMiddleware);
+
+router.post(
+  '/register',
+  requirePermission(PERMISSIONS.USER.CREATE),
+  validate({ body: RegisterSchema }),
+  controller.register
+);
 
 router.post(
   '/change-password',
