@@ -238,9 +238,9 @@ export class UserService {
    * @returns User entity cast to `UserWithRoles`.
    * @throws {NotFoundError} Thrown when the user does not exist or is soft-deleted.
    */
-  async findById(id: string): Promise<UserWithRoles> {
+  async findById(id: string, organizationId: string): Promise<UserWithRoles> {
     const user = await this.userRepo.findById(id);
-    if (!user || user.deletedAt) {
+    if (!user || user.deletedAt || user.organizationId !== organizationId) {
       logger.warn('User does not exist');
       throw new NotFoundError('User does not Exists.');
     }
@@ -486,9 +486,9 @@ export class UserService {
    * @returns User profile DTO enriched with permission codes.
    * @throws {NotFoundError} Thrown when the user cannot be found.
    */
-  async getUserProfile(id: string): Promise<UserProfile> {
+  async getUserProfile(id: string, organizationId: string): Promise<UserProfile> {
     const user = await this.userRepo.findWithRoles(id);
-    if (!user || user.deletedAt) {
+    if (!user || user.deletedAt || user.organizationId !== organizationId) {
       throw new NotFoundError('User');
     }
 

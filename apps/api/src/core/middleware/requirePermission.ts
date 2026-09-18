@@ -86,6 +86,11 @@ export const requireOrganization = (paramName: string = 'organizationId') => {
       throw new UnauthorizedError('Authentication required');
     }
 
+    if (req.user.user.isSuperAdmin) {
+      next();
+      return;
+    }
+
     const orgId = req.params[paramName] || req.body[paramName];
 
     if (orgId && orgId !== req.user.org.id) {

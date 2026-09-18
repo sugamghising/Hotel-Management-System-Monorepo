@@ -1,8 +1,7 @@
 import axios from "axios";
 import { apiClient } from "../client";
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000/api/v1";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
 
 export interface LoginUser {
   id: string;
@@ -15,7 +14,6 @@ export interface LoginUser {
 
 export interface Tokens {
   accessToken: string;
-  refreshToken: string;
   expiresIn: number;
 }
 
@@ -64,8 +62,8 @@ export const authApi = {
    * POST /auth/logout
    * Requires the refresh token in the body
    */
-  logout: async (refreshToken?: string): Promise<void> => {
-    await apiClient.post("/auth/logout", { refreshToken }).catch(() => {
+  logout: async (): Promise<void> => {
+    await apiClient.post("/auth/logout", {}).catch(() => {
       // Ignore errors on logout — local state will clear anyway
     });
   },
@@ -83,13 +81,13 @@ export const authApi = {
 
   /**
    * POST /auth/refresh
-   * Response: { success, data: { tokens: { accessToken, refreshToken, expiresIn } } }
+   * Response: { success, data: { tokens: { accessToken, expiresIn } } }
    */
-  refresh: async (refreshToken: string): Promise<Tokens> => {
+  refresh: async (): Promise<Tokens> => {
     const { data } = await axios.post(
       `${BASE_URL}/auth/refresh`,
-      { refreshToken },
-      { headers: { "Content-Type": "application/json" } },
+      {},
+      { headers: { "Content-Type": "application/json" }, withCredentials: true },
     );
     return data.data.tokens as Tokens;
   },

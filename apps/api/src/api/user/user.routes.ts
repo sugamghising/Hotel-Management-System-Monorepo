@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { PERMISSIONS } from '../../core/constants/permission';
 import { validate } from '../../core/index';
 import { authMiddleware } from '../../core/middleware/auth';
-import { requirePermission } from '../../core/middleware/requirePermission';
+import { requireAnyPermission, requirePermission } from '../../core/middleware/requirePermission';
 import { UserController } from './user.controller';
 import {
   AssignRoleSchema,
@@ -42,7 +42,7 @@ router.post(
 // Update (requires USER.UPDATE)
 router.patch(
   '/:id',
-  requirePermission(PERMISSIONS.USER.UPDATE, PERMISSIONS.USER.MANAGE),
+  requireAnyPermission(PERMISSIONS.USER.UPDATE, PERMISSIONS.USER.MANAGE),
   validate({ params: UserIdParamSchema, body: UpdateUserSchema }),
   userController.update
 );

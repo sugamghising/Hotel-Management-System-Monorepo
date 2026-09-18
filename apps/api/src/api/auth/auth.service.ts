@@ -109,6 +109,13 @@ export class AuthService {
       throw new ForbiddenError("Account is suspended");
     }
 
+    if (user.status === "PENDING_VERIFICATION") {
+      logger.warn(
+        `Login attempt for pending verification account: ${input.email} in organization: ${input.organizationCode}`,
+      );
+      throw new ForbiddenError("Account is pending verification");
+    }
+
     if (user.status === "INACTIVE") {
       logger.warn(
         `Login attempt for inactive account: ${input.email} in organization: ${input.organizationCode}`,
@@ -283,7 +290,7 @@ export class AuthService {
       orgId: input.organizationId,
     });
 
-    return user;
+    return this.mapToPublicUser(user) as User;
   }
 
   // ============================================================================
@@ -315,10 +322,10 @@ export class AuthService {
 
     let payload: RefreshTokenPayload;
     try {
-      payload = jwt.verify(
-        jwtPart,
-        config.jwt.refreshSecret,
-      ) as RefreshTokenPayload;
+      payload = jwt.verify(jwtPart, config.jwt.refreshSecret, {
+        issuer: "hms-api",
+        audience: "hms-client",
+      }) as RefreshTokenPayload;
     } catch (error) {
       logger.warn("Invalid refresh token JWT", { error });
       throw new UnauthorizedError("Invalid Refresh token");
@@ -381,10 +388,9 @@ export class AuthService {
       undefined,
       undefined,
       deviceFingerprint,
+      storedToken.deviceName ?? undefined,
+      storedToken.id,
     );
-
-    // Revoke old token
-    await this.authRepo.revokeRefreshToken(storedToken.id);
 
     return tokens;
   }
@@ -803,6 +809,7 @@ export class AuthService {
     userAgent?: string,
     deviceFingerprint?: string,
     deviceName?: string,
+    replaceTokenId?: string,
   ): Promise<TokenPair> {
     const sessionId = `sess_${generateRandomToken(16)}`;
 
@@ -845,7 +852,7 @@ export class AuthService {
     const refreshTokenValue = generateRandomToken(32);
     const refreshTokenHash = hashToken(refreshTokenValue);
 
-    await this.authRepo.createRefreshToken({
+    const refreshTokenData = {
       id: refreshTokenId,
       user: {
         connect: { id: user.id },
@@ -857,7 +864,13 @@ export class AuthService {
       deviceFingerprint: deviceFingerprint || null,
       deviceName: deviceName || null,
       metadata: {},
-    });
+    };
+
+    if (replaceTokenId) {
+      await this.authRepo.replaceRefreshToken(replaceTokenId, refreshTokenData);
+    } else {
+      await this.authRepo.createRefreshToken(refreshTokenData);
+    }
 
     const refreshPayload: RefreshTokenPayload = {
       sub: user.id,

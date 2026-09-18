@@ -64,10 +64,14 @@ export class UserController {
    */
   getById = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
     const { id } = req.params;
+    const organizationId = req.user?.org.id;
     if (!id) {
       throw new BadRequestError('User ID is required');
     }
-    const user = await userService.findById(id);
+    if (!organizationId) {
+      throw new BadRequestError('Organization ID not found in request');
+    }
+    const user = await userService.findById(id, organizationId);
 
     const response = ServiceResponse.success(user, 'User retrieved successfully.');
     handleServiceResponse(response, res);
@@ -86,11 +90,15 @@ export class UserController {
    */
   getProfile = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
     const { id } = req.params;
+    const organizationId = req.user?.org.id;
     if (!id) {
       throw new BadRequestError('User ID is required');
     }
+    if (!organizationId) {
+      throw new BadRequestError('Organization ID not found in request');
+    }
 
-    const result = await userService.getUserProfile(id);
+    const result = await userService.getUserProfile(id, organizationId);
     const response = ServiceResponse.success(result, 'User Profile fetched successfully');
     handleServiceResponse(response, res);
   });
